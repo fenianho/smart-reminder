@@ -195,7 +195,7 @@ public final class ReminderDao_Impl implements ReminderDao {
 
   @Override
   public Object insertReminder(final ReminderEntity reminder,
-      final Continuation<? super Long> arg1) {
+      final Continuation<? super Long> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -209,12 +209,12 @@ public final class ReminderDao_Impl implements ReminderDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object deleteReminder(final ReminderEntity reminder,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -228,12 +228,12 @@ public final class ReminderDao_Impl implements ReminderDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object updateReminder(final ReminderEntity reminder,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -247,11 +247,11 @@ public final class ReminderDao_Impl implements ReminderDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object deactivateReminder(final long id, final Continuation<? super Unit> arg1) {
+  public Object deactivateReminder(final long id, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -272,7 +272,7 @@ public final class ReminderDao_Impl implements ReminderDao {
           __preparedStmtOfDeactivateReminder.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override

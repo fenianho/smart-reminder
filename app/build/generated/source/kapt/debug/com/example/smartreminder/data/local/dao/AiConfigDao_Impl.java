@@ -148,7 +148,7 @@ public final class AiConfigDao_Impl implements AiConfigDao {
 
   @Override
   public Object insertAiConfig(final AiConfigEntity aiConfig,
-      final Continuation<? super Long> arg1) {
+      final Continuation<? super Long> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
       @Override
       @NonNull
@@ -162,12 +162,12 @@ public final class AiConfigDao_Impl implements AiConfigDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
   public Object updateAiConfig(final AiConfigEntity aiConfig,
-      final Continuation<? super Unit> arg1) {
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -181,11 +181,11 @@ public final class AiConfigDao_Impl implements AiConfigDao {
           __db.endTransaction();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object deleteAiConfig(final long id, final Continuation<? super Unit> arg1) {
+  public Object deleteAiConfig(final long id, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -206,11 +206,12 @@ public final class AiConfigDao_Impl implements AiConfigDao {
           __preparedStmtOfDeleteAiConfig.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
-  public Object disableAllExcept(final long exceptId, final Continuation<? super Unit> arg1) {
+  public Object disableAllExcept(final long exceptId,
+      final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -231,7 +232,7 @@ public final class AiConfigDao_Impl implements AiConfigDao {
           __preparedStmtOfDisableAllExcept.release(_stmt);
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override
@@ -313,7 +314,8 @@ public final class AiConfigDao_Impl implements AiConfigDao {
   }
 
   @Override
-  public Object getAiConfigById(final long id, final Continuation<? super AiConfigEntity> arg1) {
+  public Object getAiConfigById(final long id,
+      final Continuation<? super AiConfigEntity> $completion) {
     final String _sql = "SELECT * FROM ai_configs WHERE id = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -386,7 +388,7 @@ public final class AiConfigDao_Impl implements AiConfigDao {
           _statement.release();
         }
       }
-    }, arg1);
+    }, $completion);
   }
 
   @Override

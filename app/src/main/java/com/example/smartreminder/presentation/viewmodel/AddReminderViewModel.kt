@@ -104,12 +104,26 @@ class AddReminderViewModel @Inject constructor(
             try {
                 val result = createReminderUseCase(reminder)
                 if (result.isSuccess) {
-                    // Schedule the reminder notification
-                    val scheduledTimes = scheduleReminderUseCase(reminder)
-                    Log.d(TAG, "Scheduled times count: ${scheduledTimes.size}")
-                    reminderScheduler.scheduleReminder(reminder, scheduledTimes)
-                    _state.update { it.copy(isLoading = false, isSaved = true) }
-                    Log.d(TAG, "Reminder created and scheduled successfully")
+                    // 使用数据库返回的实际ID创建新的reminder对象
+                    val reminderId = result.getOrNull()
+                    if (reminderId != null) {
+                        val updatedReminder = reminder.copy(id = reminderId)
+                        
+                        // Schedule the reminder notification with the correct ID
+                        val scheduledTimes = scheduleReminderUseCase(updatedReminder)
+                        Log.d(TAG, "Scheduled times count: ${scheduledTimes.size}")
+                        reminderScheduler.scheduleReminder(updatedReminder, scheduledTimes)
+                        _state.update { it.copy(isLoading = false, isSaved = true) }
+                        Log.d(TAG, "Reminder created and scheduled successfully")
+                    } else {
+                        Log.e(TAG, "Failed to get reminder ID after creation")
+                        _state.update {
+                            it.copy(
+                                error = "Failed to get reminder ID",
+                                isLoading = false
+                            )
+                        }
+                    }
                 } else {
                     Log.e(TAG, "Failed to create reminder: ${reminder.title}")
                     _state.update {

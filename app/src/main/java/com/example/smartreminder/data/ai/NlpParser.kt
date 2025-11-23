@@ -2,306 +2,231 @@ package com.example.smartreminder.data.ai
 
 import android.util.Log
 import com.example.smartreminder.domain.model.AiParseResult
-import com.example.smartreminder.domain.model.AiTimeSuggestion
-import java.time.Instant
-import java.time.LocalDateTime
+import com.example.smartreminder.domain.model.RepeatType
+import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import java.util.Locale
 import java.util.regex.Pattern
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
- * 自然语言处理解析器
- * 用于处理基本的文本解析，作为AI服务的后备方案
+ * 本地NLP解析器
+ * 用于解析简单的自然语言提醒文本
  */
-@Singleton
 class NlpParser @Inject constructor() {
-
     private val TAG = "NlpParser"
 
-    /**
-     * 解析提醒文本
-     */
-    fun parseReminderText(text: String): AiParseResult {
-        try {
-            val cleanText = text.trim()
-
-            // 提取时间信息
-            val timeInfo = extractTimeInfo(cleanText)
-
-            // 提取标题和描述
-            val (title, description) = extractTitleAndDescription(cleanText, timeInfo)
-
-            return AiParseResult(
-                title = title,
-                description = description,
-                scheduledTime = timeInfo?.timestamp
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse reminder text: $text", e)
-            // 返回基本的解析结果
-            return AiParseResult(
-                title = text.take(50), // 限制标题长度
-                description = null,
-                scheduledTime = null
-            )
-        }
-    }
-
-    /**
-     * 提供时间建议
-     */
-    fun suggestReminderTime(title: String, description: String?): List<AiTimeSuggestion> {
-        val suggestions = mutableListOf<AiTimeSuggestion>()
-        val now = LocalDateTime.now()
-        val currentTime = Instant.now().toEpochMilli()
-        val zoneId = ZoneId.systemDefault()
-        val zoneOffset = zoneId.rules.getOffset(Instant.now()) // Correct
-
-        // 根据任务类型提供不同的建议
-        val taskType = analyzeTaskType(title, description ?: "")
-
-        when (taskType) {
-            TaskType.MORNING_ROUTINE -> {
-                // 早晨例行任务：建议早上时间
-                val morningTime = now.toLocalDate().atTime(8, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(morningTime, "适合早晨例行任务的时间"))
-
-                val alternativeTime = now.toLocalDate().atTime(7, 30).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(alternativeTime, "较早的早晨时间"))
-            }
-            TaskType.WORK_MEETING -> {
-                // 工作会议：建议工作时间
-                val meetingTime = now.toLocalDate().atTime(9, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(meetingTime, "标准工作开始时间"))
-
-                val afternoonTime = now.toLocalDate().atTime(14, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(afternoonTime, "下午会议时间"))
-            }
-            TaskType.PERSONAL_APPOINTMENT -> {
-                // 个人约会：建议合适的时间
-                val eveningTime = now.toLocalDate().atTime(18, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(eveningTime, "傍晚约会时间"))
-
-                val weekendTime = now.plusDays(if (now.dayOfWeek.value < 6) (6 - now.dayOfWeek.value).toLong() else 0)
-                    .toLocalDate().atTime(10, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(weekendTime, "周末上午时间"))
-            }
-            TaskType.EXERCISE -> {
-                // 运动：建议早晨或傍晚
-                val exerciseMorning = now.toLocalDate().atTime(6, 30).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(exerciseMorning, "早晨运动时间"))
-
-                val exerciseEvening = now.toLocalDate().atTime(19, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(exerciseEvening, "傍晚运动时间"))
-            }
-            TaskType.STUDY_LEARNING -> {
-                // 学习：建议安静的时间
-                val studyTime = now.toLocalDate().atTime(20, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(studyTime, "晚上学习时间"))
-
-                val morningStudy = now.toLocalDate().atTime(8, 0).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(morningStudy, "早晨学习时间"))
-            }
-            else -> {
-                // 默认建议：1小时后、明天同一时间、今天下午
-                val oneHourLater = currentTime + (60 * 60 * 1000)
-                suggestions.add(AiTimeSuggestion(oneHourLater, "1小时后"))
-
-                val tomorrowSameTime = now.plusDays(1).toInstant(zoneOffset).toEpochMilli()
-                suggestions.add(AiTimeSuggestion(tomorrowSameTime, "明天同一时间"))
-
-                val thisAfternoon = now.toLocalDate().atTime(15, 0).toInstant(zoneOffset).toEpochMilli()
-                if (thisAfternoon > currentTime) {
-                    suggestions.add(AiTimeSuggestion(thisAfternoon, "今天下午"))
-                }
-            }
-        }
-
-        // 过滤掉过去的时间
-        return suggestions.filter { it.suggestedTime > currentTime }
-    }
-
-    private data class TimeInfo(
-        val timestamp: Long?,
-        val timeText: String?
-    )
-
-    private fun extractTimeInfo(text: String): TimeInfo? {
-        // 时间模式匹配
-        val patterns = listOf(
-            // 明天上午/下午 + 时间
-            Pattern.compile("(明天)(上午|下午)?(\\d{1,2})[点时:](\\d{0,2})", Pattern.CASE_INSENSITIVE),
-            // 后天上午/下午 + 时间
-            Pattern.compile("(后天)(上午|下午)?(\\d{1,2})[点时:](\\d{0,2})", Pattern.CASE_INSENSITIVE),
-            // 下周一到周日
-            Pattern.compile("(下周|下个星期)(一|二|三|四|五|六|日|天)(上午|下午)?(\\d{1,2})[点时:](\\d{0,2})", Pattern.CASE_INSENSITIVE),
-            // 数字 + 点/时/:
-            Pattern.compile("(\\d{1,2})[点时:](\\d{0,2})", Pattern.CASE_INSENSITIVE),
-            // 相对时间：半小时后、一小时后、两小时后等
-            Pattern.compile("(\\d{1,2})(分钟|小时|天)后", Pattern.CASE_INSENSITIVE)
+    fun parse(text: String): AiParseResult {
+        Log.d(TAG, "Parsing text with local NLP: $text")
+        
+        // 基本信息提取
+        val title = extractTitle(text)
+        val description = if (title != text) text else null
+        
+        // 时间提取
+        val time = extractTime(text) ?: LocalTime.of(9, 0)
+        
+        // 日期提取
+        val date = extractDate(text)
+        
+        // 重复类型提取
+        val repeatInfo = extractRepeatInfo(text)
+        
+        val result = AiParseResult(
+            title = title,
+            description = description,
+            scheduledTime = if (date != null) {
+                val dateTime = date.atTime(time)
+                dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            } else {
+                val today = LocalDate.now()
+                val dateTime = today.atTime(time)
+                dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            },
+            repeatType = repeatInfo.repeatType,
+            monthDays = repeatInfo.monthDays,
+            weekDays = repeatInfo.weekDays,
+            monthlyWeek = repeatInfo.monthlyWeek,
+            monthlyWeekDays = repeatInfo.monthlyWeekDays
         )
-
-        for (pattern in patterns) {
-            val matcher = pattern.matcher(text)
-            if (matcher.find()) {
-                val timestamp = calculateTimestamp(matcher.group(0), matcher)
-                if (timestamp != null) {
-                    return TimeInfo(timestamp, matcher.group(0))
-                }
-            }
+        
+        Log.d(TAG, "Parsed result: $result")
+        return result
+    }
+    
+    private fun extractTitle(text: String): String {
+        // 简单的标题提取：去除时间和重复相关的词汇
+        var title = text
+        
+        // 移除时间相关词汇
+        title = title.replace(Regex("\\d{1,2}点\\d{0,2}分?"), "").trim()
+        title = title.replace(Regex("\\d{1,2}:\\d{2}"), "").trim()
+        title = title.replace(Regex("每天|每周|每月|每年|工作日|周末|周[一二三四五六日]"), "").trim()
+        title = title.replace(Regex("上午|下午|晚上"), "").trim()
+        
+        // 如果处理后标题为空，则使用原文本
+        return if (title.isBlank()) text else title
+    }
+    
+    private fun extractTime(text: String): LocalTime? {
+        // 匹配 "10点30分" 或 "10:30" 格式
+        val timePattern1 = Pattern.compile("(\\d{1,2})点(\\d{0,2})分?")
+        val matcher1 = timePattern1.matcher(text)
+        if (matcher1.find()) {
+            val hour = matcher1.group(1)?.toIntOrNull() ?: 9
+            val minute = matcher1.group(2)?.toIntOrNull() ?: 0
+            return LocalTime.of(hour, minute)
         }
-
+        
+        val timePattern2 = Pattern.compile("(\\d{1,2}):(\\d{2})")
+        val matcher2 = timePattern2.matcher(text)
+        if (matcher2.find()) {
+            val hour = matcher2.group(1)?.toIntOrNull() ?: 9
+            val minute = matcher2.group(2)?.toIntOrNull() ?: 0
+            return LocalTime.of(hour, minute)
+        }
+        
         return null
     }
-
-    private fun calculateTimestamp(timeText: String, matcher: java.util.regex.Matcher): Long? {
-        val now = LocalDateTime.now()
-        val zoneId = ZoneId.systemDefault()
-        val zoneOffset = zoneId.rules.getOffset(Instant.now())
-        return try {
-            when {
-                timeText.contains("明天") -> {
-                    val tomorrow = now.plusDays(1)
-                    val hour = matcher.group(3)?.toIntOrNull() ?: 9
-                    val minute = matcher.group(4)?.toIntOrNull() ?: 0
-                    val adjustedHour = adjustHourForPeriod(hour, matcher.group(2))
-                    tomorrow.withHour(adjustedHour).withMinute(minute).toInstant(zoneOffset).toEpochMilli()
-                }
-                timeText.contains("后天") -> {
-                    val dayAfterTomorrow = now.plusDays(2)
-                    val hour = matcher.group(3)?.toIntOrNull() ?: 9
-                    val minute = matcher.group(4)?.toIntOrNull() ?: 0
-                    val adjustedHour = adjustHourForPeriod(hour, matcher.group(2))
-                    dayAfterTomorrow.withHour(adjustedHour).withMinute(minute).toInstant(zoneOffset).toEpochMilli()
-                }
-                timeText.contains("下周") || timeText.contains("下个星期") -> {
-                    val dayOfWeek = parseDayOfWeek(matcher.group(2))
-                    val targetDay = now.plusWeeks(1).with(java.time.DayOfWeek.of(dayOfWeek))
-                    val hour = matcher.group(4)?.toIntOrNull() ?: 9
-                    val minute = matcher.group(5)?.toIntOrNull() ?: 0
-                    val adjustedHour = adjustHourForPeriod(hour, matcher.group(3))
-                    targetDay.withHour(adjustedHour).withMinute(minute).toInstant(zoneOffset).toEpochMilli()
-                }
-                timeText.contains("分钟后") || timeText.contains("小时后") || timeText.contains("天后") -> {
-                    val amount = matcher.group(1)?.toIntOrNull() ?: 1
-                    when {
-                        timeText.contains("分钟") -> now.plusMinutes(amount.toLong())
-                        timeText.contains("小时") -> now.plusHours(amount.toLong())
-                        timeText.contains("天") -> now.plusDays(amount.toLong())
-                        else -> now
-                    }.toInstant(zoneOffset).toEpochMilli()
-                }
-                else -> {
-                    // 今天的具体时间
-                    val hour = matcher.group(1)?.toIntOrNull() ?: 9
-                    val minute = matcher.group(2)?.toIntOrNull() ?: 0
-                    val todayTime = now.toLocalDate().atTime(hour, minute)
-                    val instant = todayTime.toInstant(zoneOffset)
-                    // 如果时间已经过去，调整到明天
-                    if (instant.toEpochMilli() < Instant.now().toEpochMilli()) {
-                        todayTime.plusDays(1).toInstant(zoneOffset).toEpochMilli()
-                    } else {
-                        instant.toEpochMilli()
-                    }
+    
+    private fun extractDate(text: String): LocalDate? {
+        // 匹配 "明天"、"后天" 等相对日期
+        if (text.contains("明天")) {
+            return LocalDate.now().plusDays(1)
+        }
+        if (text.contains("后天")) {
+            return LocalDate.now().plusDays(2)
+        }
+        
+        // 匹配 "YYYY-MM-DD" 格式
+        val datePattern = Pattern.compile("(\\d{4})-(\\d{1,2})-(\\d{1,2})")
+        val matcher = datePattern.matcher(text)
+        if (matcher.find()) {
+            val year = matcher.group(1)?.toIntOrNull() ?: return null
+            val month = matcher.group(2)?.toIntOrNull() ?: return null
+            val day = matcher.group(3)?.toIntOrNull() ?: return null
+            return LocalDate.of(year, month, day)
+        }
+        
+        return null
+    }
+    
+    private fun extractRepeatInfo(text: String): RepeatInfo {
+        val repeatInfo = RepeatInfo()
+        
+        when {
+            text.contains("每天") -> {
+                repeatInfo.repeatType = RepeatType.DAILY
+            }
+            text.contains("每周") -> {
+                repeatInfo.repeatType = RepeatType.WEEKLY
+                // 提取具体的星期几
+                repeatInfo.weekDays = extractWeekDays(text)
+            }
+            text.contains("每月") -> {
+                repeatInfo.repeatType = RepeatType.MONTHLY
+                // 检查是否是按星期重复
+                if (text.contains("第") && text.contains("个") && (text.contains("周末") || text.contains("周"))) {
+                    // 处理"每月第二个周末"这样的表达
+                    repeatInfo.monthlyWeek = extractMonthlyWeek(text)
+                    repeatInfo.monthlyWeekDays = extractMonthlyWeekDays(text)
+                } else if (text.contains("最后") && (text.contains("周末") || text.contains("工作日") || text.contains("一天"))) {
+                    // 处理"每月最后一个周末"或"每月最后一天"这样的表达
+                    repeatInfo.monthlyWeek = -1
+                    repeatInfo.monthlyWeekDays = extractMonthlyWeekDays(text)
+                } else {
+                    // 按日期重复
+                    repeatInfo.monthDays = extractMonthDays(text)
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to calculate timestamp for: $timeText", e)
-            null
+            text.contains("每年") -> {
+                repeatInfo.repeatType = RepeatType.YEARLY
+            }
+            text.contains("工作日") -> {
+                repeatInfo.repeatType = RepeatType.WEEKLY
+                repeatInfo.weekDays = setOf(1, 2, 3, 4, 5) // 周一到周五
+            }
+            text.contains("周末") && !text.contains("每月") -> {
+                repeatInfo.repeatType = RepeatType.WEEKLY
+                repeatInfo.weekDays = setOf(6, 7) // 周六和周日
+            }
         }
+        
+        return repeatInfo
     }
-
-    private fun adjustHourForPeriod(hour: Int, period: String?): Int {
-        return when (period) {
-            "下午", "pm", "PM" -> if (hour in 1..11) hour + 12 else hour
-            "上午", "am", "AM" -> if (hour == 12) 0 else hour
-            else -> hour
-        }
+    
+    private fun extractWeekDays(text: String): Set<Int> {
+        val weekdays = mutableSetOf<Int>()
+        if (text.contains("周一") || text.contains("星期一")) weekdays.add(1)
+        if (text.contains("周二") || text.contains("星期二")) weekdays.add(2)
+        if (text.contains("周三") || text.contains("星期三")) weekdays.add(3)
+        if (text.contains("周四") || text.contains("星期四")) weekdays.add(4)
+        if (text.contains("周五") || text.contains("星期五")) weekdays.add(5)
+        if (text.contains("周六") || text.contains("星期六")) weekdays.add(6)
+        if (text.contains("周日") || text.contains("星期日") || text.contains("周日")) weekdays.add(7)
+        
+        return weekdays.ifEmpty { setOf(1, 2, 3, 4, 5) } // 默认工作日
     }
-
-    private fun parseDayOfWeek(dayText: String?): Int {
-        return when (dayText) {
-            "一", "周一", "星期一" -> 1
-            "二", "周二", "星期二" -> 2
-            "三", "周三", "星期三" -> 3
-            "四", "周四", "星期四" -> 4
-            "五", "周五", "星期五" -> 5
-            "六", "周六", "星期六" -> 6
-            "日", "天", "周日", "星期日" -> 7
-            else -> 1
+    
+    private fun extractMonthDays(text: String): Set<Int> {
+        val monthdays = mutableSetOf<Int>()
+        
+        // 匹配"每月5号"或"每月31号"这样的表达
+        val dayPattern = Pattern.compile("每月(\\d{1,2})号?")
+        val matcher = dayPattern.matcher(text)
+        if (matcher.find()) {
+            val day = matcher.group(1)?.toIntOrNull()
+            if (day != null && day in 1..31) {
+                monthdays.add(day)
+            }
         }
+        
+        // 匹配"月末"或"每月最后一天"
+        if (text.contains("月末") || text.contains("最后一天")) {
+            monthdays.add(31) // 用31表示月末
+        }
+        
+        return monthdays.ifEmpty { setOf(1) } // 默认每月1号
     }
-
-    private fun extractTitleAndDescription(text: String, timeInfo: TimeInfo?): Pair<String, String?> {
-        var cleanText = text
-
-        // 移除时间信息
-        timeInfo?.timeText?.let { timeText ->
-            cleanText = cleanText.replace(timeText, "").trim()
+    
+    private fun extractMonthlyWeek(text: String): Int? {
+        // 匹配"每月第二个"或"每月第2个"这样的表达
+        val weekPattern = Pattern.compile("每月第([一二三四]|\\d)个")
+        val matcher = weekPattern.matcher(text)
+        if (matcher.find()) {
+            val weekStr = matcher.group(1)
+            return when (weekStr) {
+                "一" -> 1
+                "二" -> 2
+                "三" -> 3
+                "四" -> 4
+                else -> weekStr?.toIntOrNull()
+            }
         }
-
-        // 移除常见的时间关键词
-        val timeKeywords = listOf(
-            "提醒我", "记住", "别忘了", "通知我", "告诉我",
-            "明天", "后天", "下周", "下个星期", "上午", "下午",
-            "早上", "晚上", "中午", "凌晨"
-        )
-
-        for (keyword in timeKeywords) {
-            cleanText = cleanText.replace(keyword, "", ignoreCase = true).trim()
-        }
-
-        // 分割标题和描述
-        val sentences = cleanText.split("[。！？.!?]".toRegex()).filter { it.isNotBlank() }
-
-        val title = if (sentences.isNotEmpty()) {
-            sentences.first().trim().take(50) // 限制标题长度
+        return null
+    }
+    
+    private fun extractMonthlyWeekDays(text: String): Set<Int> {
+        val weekdays = mutableSetOf<Int>()
+        
+        if (text.contains("周末")) {
+            weekdays.addAll(setOf(6, 7)) // 周六和周日
+        } else if (text.contains("工作日")) {
+            weekdays.addAll(setOf(1, 2, 3, 4, 5)) // 周一到周五
         } else {
-            cleanText.take(50)
+            // 尝试提取具体的星期几
+            weekdays.addAll(extractWeekDays(text))
         }
-
-        val description = if (sentences.size > 1) {
-            sentences.drop(1).joinToString("。").trim().takeIf { it.isNotEmpty() }
-        } else {
-            null
-        }
-
-        return Pair(title, description)
+        
+        return weekdays.ifEmpty { setOf(1, 2, 3, 4, 5) } // 默认工作日
     }
-
-    private enum class TaskType {
-        MORNING_ROUTINE,
-        WORK_MEETING,
-        PERSONAL_APPOINTMENT,
-        EXERCISE,
-        STUDY_LEARNING,
-        GENERAL
-    }
-
-    private fun analyzeTaskType(title: String, description: String): TaskType {
-        val text = "$title $description".lowercase()
-
-        return when {
-            text.contains("晨跑") || text.contains("早操") || text.contains("晨间") ||
-                    text.contains("早餐") || text.contains("起床") || text.contains("刷牙") -> TaskType.MORNING_ROUTINE
-
-            text.contains("会议") || text.contains("开会") || text.contains("讨论") ||
-                    text.contains("汇报") || text.contains("培训") || text.contains("面试") -> TaskType.WORK_MEETING
-
-            text.contains("约会") || text.contains("见面") || text.contains("聚会") ||
-                    text.contains("晚餐") -> TaskType.PERSONAL_APPOINTMENT
-
-            text.contains("运动") || text.contains("锻炼") || text.contains("健身") ||
-                    text.contains("跑步") || text.contains("游泳") -> TaskType.EXERCISE
-
-            text.contains("学习") || text.contains("看书") || text.contains("复习") ||
-                    text.contains("课程") || text.contains("作业") -> TaskType.STUDY_LEARNING
-
-            else -> TaskType.GENERAL
-        }
-    }
+    
+    private data class RepeatInfo(
+        var repeatType: RepeatType = RepeatType.NONE,
+        var monthDays: Set<Int> = emptySet(),
+        var weekDays: Set<Int> = emptySet(),
+        var monthlyWeek: Int? = null,
+        var monthlyWeekDays: Set<Int> = emptySet()
+    )
 }

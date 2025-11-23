@@ -73,6 +73,14 @@ fun AddReminderScreen(
                 monthlyRepeatType = MonthlyRepeatType.BY_DATE
                 monthlyRepeatDays = parseResult.monthDays
             }
+            // 使用AI解析的每月按星期重复
+            else if (parseResult.repeatType == RepeatType.MONTHLY && parseResult.monthlyWeek != null) {
+                monthlyRepeatType = MonthlyRepeatType.BY_WEEKDAY
+                monthlyRepeatWeek = parseResult.monthlyWeek ?: 0
+                // 如果monthlyWeekDays只有一个元素，设置为选中的星期几
+                // 如果有多个元素(如周末[6,7])，我们选择第一个作为默认值
+                monthlyRepeatDayOfWeek = parseResult.monthlyWeekDays.firstOrNull() ?: 0
+            }
             // 使用AI解析的每周重复日期
             if (parseResult.repeatType == RepeatType.WEEKLY) {
                 repeatDays = parseResult.weekDays
@@ -227,6 +235,14 @@ fun AddReminderScreen(
                                         if (parseResult.repeatType == RepeatType.MONTHLY && parseResult.monthDays.isNotEmpty()) {
                                             monthlyRepeatType = MonthlyRepeatType.BY_DATE
                                             monthlyRepeatDays = parseResult.monthDays
+                                        }
+                                        // 使用AI解析的每月按星期重复
+                                        else if (parseResult.repeatType == RepeatType.MONTHLY && parseResult.monthlyWeek != null) {
+                                            monthlyRepeatType = MonthlyRepeatType.BY_WEEKDAY
+                                            monthlyRepeatWeek = parseResult.monthlyWeek ?: 0
+                                            // 如果monthlyWeekDays只有一个元素，设置为选中的星期几
+                                            // 如果有多个元素(如周末[6,7])，我们选择第一个作为默认值
+                                            monthlyRepeatDayOfWeek = parseResult.monthlyWeekDays.firstOrNull() ?: 0
                                         }
                                         // 使用AI解析的每周重复日期
                                         if (parseResult.repeatType == RepeatType.WEEKLY) {
@@ -613,6 +629,41 @@ fun AddReminderScreen(
                     }
                 }
             }
+        }
+        
+        // Date Picker Dialog
+        MaterialDialog(
+            dialogState = dateDialogState,
+            buttons = {
+                positiveButton("OK")
+                negativeButton("Cancel")
+            }
+        ) {
+            datepicker(
+                initialDate = selectedDateTime.toLocalDate(),
+                onDateChange = { date ->
+                    selectedDateTime = selectedDateTime.withYear(date.year)
+                        .withMonth(date.monthValue)
+                        .withDayOfMonth(date.dayOfMonth)
+                }
+            )
+        }
+
+        // Time Picker Dialog
+        MaterialDialog(
+            dialogState = timeDialogState,
+            buttons = {
+                positiveButton("OK")
+                negativeButton("Cancel")
+            }
+        ) {
+            timepicker(
+                initialTime = selectedDateTime.toLocalTime(),
+                onTimeChange = { time ->
+                    selectedDateTime = selectedDateTime.withHour(time.hour)
+                        .withMinute(time.minute)
+                }
+            )
         }
     }
 }

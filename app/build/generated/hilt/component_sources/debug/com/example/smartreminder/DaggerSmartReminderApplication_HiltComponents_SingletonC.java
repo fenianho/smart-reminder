@@ -660,8 +660,6 @@ public final class DaggerSmartReminderApplication_HiltComponents_SingletonC {
 
     private Provider<AiServiceFactory> aiServiceFactoryProvider;
 
-    private Provider<NlpParser> nlpParserProvider;
-
     private Provider<AiServiceManager> aiServiceManagerProvider;
 
     private Provider<ReminderDao> provideReminderDaoProvider;
@@ -685,12 +683,11 @@ public final class DaggerSmartReminderApplication_HiltComponents_SingletonC {
       this.aiConfigRepositoryImplProvider = new SwitchingProvider<>(singletonCImpl, 1);
       this.bindAiConfigRepositoryProvider = DoubleCheck.provider((Provider) aiConfigRepositoryImplProvider);
       this.aiServiceFactoryProvider = DoubleCheck.provider(new SwitchingProvider<AiServiceFactory>(singletonCImpl, 4));
-      this.nlpParserProvider = DoubleCheck.provider(new SwitchingProvider<NlpParser>(singletonCImpl, 5));
       this.aiServiceManagerProvider = DoubleCheck.provider(new SwitchingProvider<AiServiceManager>(singletonCImpl, 0));
-      this.provideReminderDaoProvider = DoubleCheck.provider(new SwitchingProvider<ReminderDao>(singletonCImpl, 7));
-      this.reminderRepositoryImplProvider = new SwitchingProvider<>(singletonCImpl, 6);
+      this.provideReminderDaoProvider = DoubleCheck.provider(new SwitchingProvider<ReminderDao>(singletonCImpl, 6));
+      this.reminderRepositoryImplProvider = new SwitchingProvider<>(singletonCImpl, 5);
       this.bindReminderRepositoryProvider = DoubleCheck.provider((Provider) reminderRepositoryImplProvider);
-      this.provideReminderSchedulerProvider = DoubleCheck.provider(new SwitchingProvider<ReminderScheduler>(singletonCImpl, 8));
+      this.provideReminderSchedulerProvider = DoubleCheck.provider(new SwitchingProvider<ReminderScheduler>(singletonCImpl, 7));
     }
 
     @Override
@@ -734,7 +731,7 @@ public final class DaggerSmartReminderApplication_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.example.smartreminder.data.ai.AiServiceManager 
-          return (T) new AiServiceManager(singletonCImpl.bindAiConfigRepositoryProvider.get(), singletonCImpl.aiServiceFactoryProvider.get(), singletonCImpl.nlpParserProvider.get());
+          return (T) new AiServiceManager(singletonCImpl.bindAiConfigRepositoryProvider.get(), singletonCImpl.aiServiceFactoryProvider.get(), new NlpParser());
 
           case 1: // com.example.smartreminder.data.repository.AiConfigRepositoryImpl 
           return (T) new AiConfigRepositoryImpl(singletonCImpl.provideAiConfigDaoProvider.get());
@@ -748,16 +745,13 @@ public final class DaggerSmartReminderApplication_HiltComponents_SingletonC {
           case 4: // com.example.smartreminder.data.ai.AiServiceFactory 
           return (T) new AiServiceFactory();
 
-          case 5: // com.example.smartreminder.data.ai.NlpParser 
-          return (T) new NlpParser();
-
-          case 6: // com.example.smartreminder.data.repository.ReminderRepositoryImpl 
+          case 5: // com.example.smartreminder.data.repository.ReminderRepositoryImpl 
           return (T) new ReminderRepositoryImpl(singletonCImpl.provideReminderDaoProvider.get());
 
-          case 7: // com.example.smartreminder.data.local.dao.ReminderDao 
+          case 6: // com.example.smartreminder.data.local.dao.ReminderDao 
           return (T) DatabaseModule_ProvideReminderDaoFactory.provideReminderDao(singletonCImpl.provideAppDatabaseProvider.get());
 
-          case 8: // com.example.smartreminder.service.scheduler.ReminderScheduler 
+          case 7: // com.example.smartreminder.service.scheduler.ReminderScheduler 
           return (T) WorkManagerModule_ProvideReminderSchedulerFactory.provideReminderScheduler(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           default: throw new AssertionError(id);

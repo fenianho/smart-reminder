@@ -6,7 +6,7 @@ import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
 
-@ScopeMetadata("javax.inject.Singleton")
+@ScopeMetadata
 @QualifierMetadata
 @DaggerGenerated
 @SuppressWarnings({
