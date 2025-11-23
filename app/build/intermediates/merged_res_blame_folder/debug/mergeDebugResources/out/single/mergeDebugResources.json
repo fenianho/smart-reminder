@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\mipmap-hdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\mipmap-hdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\mipmap-xxxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\mipmap-xxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "com.example.smartreminder.app-debug-66:/drawable_ic_notification.png.flat",
+        "source": "com.example.smartreminder.app-main-68:/drawable/ic_notification.png"
+    },
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\mipmap-mdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\mipmap-mdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-debug-66:\\mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\f\\.gradle\\daemon\\8.7\\com.example.smartreminder.app-main-68:\\mipmap-xhdpi\\ic_launcher.png"
+    }
+]
