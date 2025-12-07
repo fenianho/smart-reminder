@@ -15,8 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartreminder.domain.model.Reminder
 import com.example.smartreminder.domain.model.RepeatType
+import com.example.smartreminder.domain.usecase.ScheduleReminderUseCase
 import com.example.smartreminder.presentation.viewmodel.ReminderListEvent
 import com.example.smartreminder.presentation.viewmodel.ReminderListViewModel
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -198,18 +200,7 @@ private fun ReminderCard(
                 Spacer(modifier = Modifier.height(4.dp))
             }
 
-            val timeText = formatReminderTime(reminder.reminderTime)
-            val timeColor = when {
-                reminder.reminderTime < System.currentTimeMillis() && reminder.isActive -> 
-                    Color.Red // 过期提醒用红色
-                !reminder.isActive -> MaterialTheme.colorScheme.outline
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            }
-            Text(
-                text = timeText,
-                style = MaterialTheme.typography.bodySmall,
-                color = timeColor
-            )
+            CountdownTimerText(reminder = reminder)
 
             if (reminder.repeatType != RepeatType.NONE) {
                 Text(
@@ -226,17 +217,67 @@ private fun ReminderCard(
     }
 }
 
+@Composable
+private fun CountdownTimerText(reminder: Reminder) {
+    var displayTime by remember { mutableStateOf(reminder.reminderTime) }
+    var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
+    
+    // 当提醒是重复类型且当前时间已经超过显示时间时，计算下一次提醒时间
+    LaunchedEffect(reminder, displayTime, currentTime) {
+        if (reminder.repeatType != RepeatType.NONE && 
+            reminder.isActive && 
+            displayTime <= currentTime) {
+            
+            // 使用ScheduleReminderUseCase计算下一次提醒时间
+            val scheduleUseCase = ScheduleReminderUseCase()
+            val nextTimes = scheduleUseCase(reminder)
+            
+            if (nextTimes.isNotEmpty()) {
+                displayTime = nextTimes.first()
+            }
+        }
+    }
+    
+    // 更新时间以触发动画
+    LaunchedEffect(reminder.isActive, displayTime) {
+        if (reminder.isActive && displayTime > currentTime) {
+            while (true) {
+                delay(1000) // 每秒更新一次
+                currentTime = System.currentTimeMillis()
+            }
+        }
+    }
+    
+    val timeText = formatReminderTime(displayTime, currentTime)
+    val timeColor = when {
+        displayTime < currentTime && reminder.isActive -> 
+            Color.Red // 过期提醒用红色
+        !reminder.isActive -> MaterialTheme.colorScheme.outline
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    
+    Text(
+        text = timeText,
+        style = MaterialTheme.typography.bodySmall,
+        color = timeColor
+    )
+}
 
-private fun formatReminderTime(timeMillis: Long): String {
-    val date = Date(timeMillis)
-    val now = System.currentTimeMillis()
-    val diff = timeMillis - now
-
+private fun formatReminderTime(reminderTime: Long, currentTime: Long = System.currentTimeMillis()): String {
+    val diff = reminderTime - currentTime
+    
     return when {
         diff < 0 -> "Overdue"
         diff < 60 * 1000 -> "In less than a minute"
-        diff < 60 * 60 * 1000 -> "In ${diff / (60 * 1000)} minutes"
-        diff < 24 * 60 * 60 * 1000 -> "In ${diff / (60 * 60 * 1000)} hours"
-        else -> SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(date)
+        diff < 60 * 60 * 1000 -> { // 小于1小时，显示分和秒
+            val minutes = diff / (60 * 1000)
+            val seconds = (diff % (60 * 1000)) / 1000
+            String.format("In %d min %d sec", minutes, seconds)
+        }
+        else -> { // 大于等于1小时，显示小时和分钟
+            val hours = diff / (60 * 60 * 1000)
+            val minutes = (diff % (60 * 60 * 1000)) / (60 * 1000)
+            String.format("In %d hr %d min", hours, minutes)
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.smartreminder.presentation.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartreminder.domain.model.Reminder
@@ -7,6 +8,7 @@ import com.example.smartreminder.domain.usecase.CreateReminderUseCase
 import com.example.smartreminder.domain.usecase.GetAllRemindersUseCase
 import com.example.smartreminder.domain.usecase.ScheduleReminderUseCase
 import com.example.smartreminder.domain.usecase.UpdateReminderUseCase
+import com.example.smartreminder.service.scheduler.ReminderScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,8 +21,9 @@ import javax.inject.Inject
 class ReminderListViewModel @Inject constructor(
     private val getAllRemindersUseCase: GetAllRemindersUseCase,
     private val createReminderUseCase: CreateReminderUseCase,
+    private val updateReminderUseCase: UpdateReminderUseCase,
     private val scheduleReminderUseCase: ScheduleReminderUseCase,
-    private val updateReminderUseCase: UpdateReminderUseCase
+    private val reminderScheduler: ReminderScheduler
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReminderListState())
@@ -87,6 +90,9 @@ class ReminderListViewModel @Inject constructor(
                     // 如果提醒被激活，重新调度提醒通知
                     if (updatedReminder.isActive) {
                         scheduleReminderUseCase(updatedReminder)
+                    } else {
+                        // 如果提醒被取消激活，取消已调度的提醒通知
+                        reminderScheduler.cancelReminder(reminder.id)
                     }
                     // 重新加载列表以反映更改
                     loadReminders()

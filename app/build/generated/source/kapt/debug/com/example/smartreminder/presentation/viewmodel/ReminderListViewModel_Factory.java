@@ -5,6 +5,7 @@ import com.example.smartreminder.domain.usecase.CreateReminderUseCase;
 import com.example.smartreminder.domain.usecase.GetAllRemindersUseCase;
 import com.example.smartreminder.domain.usecase.ScheduleReminderUseCase;
 import com.example.smartreminder.domain.usecase.UpdateReminderUseCase;
+import com.example.smartreminder.service.scheduler.ReminderScheduler;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -25,37 +26,42 @@ public final class ReminderListViewModel_Factory implements Factory<ReminderList
 
   private final Provider<CreateReminderUseCase> createReminderUseCaseProvider;
 
+  private final Provider<UpdateReminderUseCase> updateReminderUseCaseProvider;
+
   private final Provider<ScheduleReminderUseCase> scheduleReminderUseCaseProvider;
 
-  private final Provider<UpdateReminderUseCase> updateReminderUseCaseProvider;
+  private final Provider<ReminderScheduler> reminderSchedulerProvider;
 
   public ReminderListViewModel_Factory(
       Provider<GetAllRemindersUseCase> getAllRemindersUseCaseProvider,
       Provider<CreateReminderUseCase> createReminderUseCaseProvider,
+      Provider<UpdateReminderUseCase> updateReminderUseCaseProvider,
       Provider<ScheduleReminderUseCase> scheduleReminderUseCaseProvider,
-      Provider<UpdateReminderUseCase> updateReminderUseCaseProvider) {
+      Provider<ReminderScheduler> reminderSchedulerProvider) {
     this.getAllRemindersUseCaseProvider = getAllRemindersUseCaseProvider;
     this.createReminderUseCaseProvider = createReminderUseCaseProvider;
-    this.scheduleReminderUseCaseProvider = scheduleReminderUseCaseProvider;
     this.updateReminderUseCaseProvider = updateReminderUseCaseProvider;
+    this.scheduleReminderUseCaseProvider = scheduleReminderUseCaseProvider;
+    this.reminderSchedulerProvider = reminderSchedulerProvider;
   }
 
   @Override
   public ReminderListViewModel get() {
-    return newInstance(getAllRemindersUseCaseProvider.get(), createReminderUseCaseProvider.get(), scheduleReminderUseCaseProvider.get(), updateReminderUseCaseProvider.get());
+    return newInstance(getAllRemindersUseCaseProvider.get(), createReminderUseCaseProvider.get(), updateReminderUseCaseProvider.get(), scheduleReminderUseCaseProvider.get(), reminderSchedulerProvider.get());
   }
 
   public static ReminderListViewModel_Factory create(
       Provider<GetAllRemindersUseCase> getAllRemindersUseCaseProvider,
       Provider<CreateReminderUseCase> createReminderUseCaseProvider,
+      Provider<UpdateReminderUseCase> updateReminderUseCaseProvider,
       Provider<ScheduleReminderUseCase> scheduleReminderUseCaseProvider,
-      Provider<UpdateReminderUseCase> updateReminderUseCaseProvider) {
-    return new ReminderListViewModel_Factory(getAllRemindersUseCaseProvider, createReminderUseCaseProvider, scheduleReminderUseCaseProvider, updateReminderUseCaseProvider);
+      Provider<ReminderScheduler> reminderSchedulerProvider) {
+    return new ReminderListViewModel_Factory(getAllRemindersUseCaseProvider, createReminderUseCaseProvider, updateReminderUseCaseProvider, scheduleReminderUseCaseProvider, reminderSchedulerProvider);
   }
 
   public static ReminderListViewModel newInstance(GetAllRemindersUseCase getAllRemindersUseCase,
-      CreateReminderUseCase createReminderUseCase, ScheduleReminderUseCase scheduleReminderUseCase,
-      UpdateReminderUseCase updateReminderUseCase) {
-    return new ReminderListViewModel(getAllRemindersUseCase, createReminderUseCase, scheduleReminderUseCase, updateReminderUseCase);
+      CreateReminderUseCase createReminderUseCase, UpdateReminderUseCase updateReminderUseCase,
+      ScheduleReminderUseCase scheduleReminderUseCase, ReminderScheduler reminderScheduler) {
+    return new ReminderListViewModel(getAllRemindersUseCase, createReminderUseCase, updateReminderUseCase, scheduleReminderUseCase, reminderScheduler);
   }
 }

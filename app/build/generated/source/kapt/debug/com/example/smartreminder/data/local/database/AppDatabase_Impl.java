@@ -35,13 +35,13 @@ public final class AppDatabase_Impl extends AppDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(6) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `reminders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `reminderTime` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, `repeatType` TEXT NOT NULL, `repeatInterval` INTEGER, `repeatDays` TEXT, `monthlyRepeatType` TEXT, `monthlyRepeatDays` TEXT, `monthlyRepeatWeek` INTEGER, `monthlyRepeatDayOfWeek` INTEGER, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `reminders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `reminderTime` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, `repeatType` TEXT NOT NULL, `repeatInterval` INTEGER, `repeatDays` TEXT, `monthlyRepeatType` TEXT, `monthlyRepeatDays` TEXT, `monthlyRepeatWeeks` TEXT, `monthlyRepeatDaysOfWeek` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `ai_configs` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `provider` TEXT NOT NULL, `apiKey` TEXT NOT NULL, `modelName` TEXT NOT NULL, `isEnabled` INTEGER NOT NULL, `baseUrl` TEXT, `timeoutMs` INTEGER NOT NULL, `maxRetries` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd2bd831041aa22aca52559cc5adb2f8d')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'da815c2b4ad7aa4265944c185d97477d')");
       }
 
       @Override
@@ -102,8 +102,8 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsReminders.put("repeatDays", new TableInfo.Column("repeatDays", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsReminders.put("monthlyRepeatType", new TableInfo.Column("monthlyRepeatType", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsReminders.put("monthlyRepeatDays", new TableInfo.Column("monthlyRepeatDays", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsReminders.put("monthlyRepeatWeek", new TableInfo.Column("monthlyRepeatWeek", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
-        _columnsReminders.put("monthlyRepeatDayOfWeek", new TableInfo.Column("monthlyRepeatDayOfWeek", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsReminders.put("monthlyRepeatWeeks", new TableInfo.Column("monthlyRepeatWeeks", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsReminders.put("monthlyRepeatDaysOfWeek", new TableInfo.Column("monthlyRepeatDaysOfWeek", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsReminders.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsReminders.put("updatedAt", new TableInfo.Column("updatedAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysReminders = new HashSet<TableInfo.ForeignKey>(0);
@@ -136,7 +136,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "d2bd831041aa22aca52559cc5adb2f8d", "c8c268b07db27ba278c0015183fca12b");
+    }, "da815c2b4ad7aa4265944c185d97477d", "5422ec233bf2550006347ba260a636eb");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

@@ -137,8 +137,9 @@ fun AiConfigItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${config.provider.name} - ${config.modelName}",
-                        style = MaterialTheme.typography.titleMedium
+                        text = if (config.name.isNotBlank()) config.name else "${config.provider.name} - ${config.modelName}",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f, false)
                     )
                     if (isActive) {
                         Icon(

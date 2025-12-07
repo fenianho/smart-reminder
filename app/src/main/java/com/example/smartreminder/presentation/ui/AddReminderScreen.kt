@@ -1,12 +1,14 @@
 package com.example.smartreminder.presentation.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -16,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartreminder.domain.model.MonthlyRepeatType
@@ -28,6 +31,7 @@ import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.datetime.time.timepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -49,8 +53,8 @@ fun AddReminderScreen(
     var repeatDays by remember { mutableStateOf(setOf<Int>()) }
     var monthlyRepeatType by remember { mutableStateOf(MonthlyRepeatType.BY_DATE) }
     var monthlyRepeatDays by remember { mutableStateOf(setOf<Int>()) }
-    var monthlyRepeatWeek by remember { mutableStateOf<Int?>(null) }
-    var monthlyRepeatDayOfWeek by remember { mutableStateOf<Int?>(null) }
+    var monthlyRepeatWeeks by remember { mutableStateOf(setOf<Int>()) }
+    var monthlyRepeatDaysOfWeek by remember { mutableStateOf(setOf<Int>()) }
     var inputText by remember { mutableStateOf("") }
     
     // 监听AI解析结果的变化
@@ -76,10 +80,8 @@ fun AddReminderScreen(
             // 使用AI解析的每月按星期重复
             else if (parseResult.repeatType == RepeatType.MONTHLY && parseResult.monthlyWeek != null) {
                 monthlyRepeatType = MonthlyRepeatType.BY_WEEKDAY
-                monthlyRepeatWeek = parseResult.monthlyWeek ?: 0
-                // 如果monthlyWeekDays只有一个元素，设置为选中的星期几
-                // 如果有多个元素(如周末[6,7])，我们选择第一个作为默认值
-                monthlyRepeatDayOfWeek = parseResult.monthlyWeekDays.firstOrNull() ?: 0
+                monthlyRepeatWeeks = setOf(parseResult.monthlyWeek ?: 0)
+                monthlyRepeatDaysOfWeek = parseResult.monthlyWeekDays.toSet()
             }
             // 使用AI解析的每周重复日期
             if (parseResult.repeatType == RepeatType.WEEKLY) {
@@ -94,6 +96,20 @@ fun AddReminderScreen(
             // 立即导航回去，然后显示提示
             onNavigateBack()
             snackbarHostState.showSnackbar("Reminder created successfully!")
+        }
+    }
+
+    // 监听错误消息并显示
+    LaunchedEffect(state.errorMessage) {
+        // Only show non-blank error messages. If we clear the error with an empty
+        // string we may trigger this effect again and display an empty snackbar.
+        state.errorMessage?.let { msg ->
+            if (msg.isNotBlank()) {
+                snackbarHostState.showSnackbar(msg)
+                // Clear the error using the ClearError event so the message becomes null
+                // instead of an empty string (avoids showing an empty snackbar).
+                viewModel.onEvent(AddReminderEvent.ClearError)
+            }
         }
     }
 
@@ -239,10 +255,8 @@ fun AddReminderScreen(
                                         // 使用AI解析的每月按星期重复
                                         else if (parseResult.repeatType == RepeatType.MONTHLY && parseResult.monthlyWeek != null) {
                                             monthlyRepeatType = MonthlyRepeatType.BY_WEEKDAY
-                                            monthlyRepeatWeek = parseResult.monthlyWeek ?: 0
-                                            // 如果monthlyWeekDays只有一个元素，设置为选中的星期几
-                                            // 如果有多个元素(如周末[6,7])，我们选择第一个作为默认值
-                                            monthlyRepeatDayOfWeek = parseResult.monthlyWeekDays.firstOrNull() ?: 0
+                                            monthlyRepeatWeeks = setOf(parseResult.monthlyWeek ?: 0)
+                                            monthlyRepeatDaysOfWeek = parseResult.monthlyWeekDays.toSet()
                                         }
                                         // 使用AI解析的每周重复日期
                                         if (parseResult.repeatType == RepeatType.WEEKLY) {
@@ -294,14 +308,14 @@ fun AddReminderScreen(
                         onClick = { dateDialogState.show() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("开始日期: ${selectedDateTime.toLocalDate()}")
+                        Text("Date: ${selectedDateTime.toLocalDate()}")
                     }
 
                     OutlinedButton(
                         onClick = { timeDialogState.show() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("开始时间: ${selectedDateTime.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))}")
+                        Text("Time: ${selectedDateTime.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))}")
                     }
                 }
 
@@ -422,6 +436,14 @@ fun AddReminderScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (day in monthlyRepeatDays) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.surface
+                                            }
+                                        )
                                         .clickable {
                                             monthlyRepeatDays = if (day in monthlyRepeatDays) {
                                                 monthlyRepeatDays - day
@@ -448,6 +470,14 @@ fun AddReminderScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (31 in monthlyRepeatDays) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.surface
+                                            }
+                                        )
                                         .clickable {
                                             val lastDay = 31 // 特殊值表示最后一天
                                             monthlyRepeatDays = if (lastDay in monthlyRepeatDays) {
@@ -517,12 +547,18 @@ fun AddReminderScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { monthlyRepeatWeek = weekValue }
+                                            .clickable { 
+                                                monthlyRepeatWeeks = if (weekValue in monthlyRepeatWeeks) {
+                                                    monthlyRepeatWeeks - weekValue
+                                                } else {
+                                                    monthlyRepeatWeeks + weekValue
+                                                }
+                                            }
                                             .padding(vertical = 4.dp)
                                     ) {
-                                        RadioButton(
-                                            selected = monthlyRepeatWeek == weekValue,
-                                            onClick = { monthlyRepeatWeek = weekValue }
+                                        Checkbox(
+                                            checked = weekValue in monthlyRepeatWeeks,
+                                            onCheckedChange = null // Handled by clickable
                                         )
                                         Text(
                                             text = weekName,
@@ -556,12 +592,18 @@ fun AddReminderScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { monthlyRepeatDayOfWeek = dayValue }
+                                            .clickable { 
+                                                monthlyRepeatDaysOfWeek = if (dayValue in monthlyRepeatDaysOfWeek) {
+                                                    monthlyRepeatDaysOfWeek - dayValue
+                                                } else {
+                                                    monthlyRepeatDaysOfWeek + dayValue
+                                                }
+                                            }
                                             .padding(vertical = 4.dp)
                                     ) {
-                                        RadioButton(
-                                            selected = monthlyRepeatDayOfWeek == dayValue,
-                                            onClick = { monthlyRepeatDayOfWeek = dayValue }
+                                        Checkbox(
+                                            checked = dayValue in monthlyRepeatDaysOfWeek,
+                                            onCheckedChange = null // Handled by clickable
                                         )
                                         Text(
                                             text = dayName,
@@ -604,8 +646,8 @@ fun AddReminderScreen(
                             repeatDays = if (repeatType == RepeatType.WEEKLY) repeatDays else null,
                             monthlyRepeatType = if (repeatType == RepeatType.MONTHLY) monthlyRepeatType else null,
                             monthlyRepeatDays = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_DATE) monthlyRepeatDays else null,
-                            monthlyRepeatWeek = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatWeek else null,
-                            monthlyRepeatDayOfWeek = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatDayOfWeek else null,
+                            monthlyRepeatWeeks = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatWeeks else null,
+                            monthlyRepeatDaysOfWeek = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatDaysOfWeek else null,
                             repeatInterval = null,
                             createdAt = System.currentTimeMillis(),
                             updatedAt = System.currentTimeMillis()
@@ -642,9 +684,15 @@ fun AddReminderScreen(
             datepicker(
                 initialDate = selectedDateTime.toLocalDate(),
                 onDateChange = { date ->
-                    selectedDateTime = selectedDateTime.withYear(date.year)
-                        .withMonth(date.monthValue)
-                        .withDayOfMonth(date.dayOfMonth)
+                    // Check if selected date is in the past
+                    if (date.isBefore(LocalDate.now())) {
+                        // Show error message if date is in the past
+                        viewModel.onEvent(AddReminderEvent.ShowErrorMessage("Cannot select a date in the past. Please choose a future date."))
+                    } else {
+                        selectedDateTime = selectedDateTime.withYear(date.year)
+                            .withMonth(date.monthValue)
+                            .withDayOfMonth(date.dayOfMonth)
+                    }
                 }
             )
         }

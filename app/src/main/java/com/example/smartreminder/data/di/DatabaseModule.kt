@@ -27,11 +27,8 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-        .addMigrations(
-            AppDatabase.MIGRATION_2_3, 
-            AppDatabase.MIGRATION_3_4, 
-            AppDatabase.MIGRATION_4_5,
-            AppDatabase.MIGRATION_5_6)
+        // 删除所有迁移策略，让Room重新创建数据库
+        .fallbackToDestructiveMigration()
         .build()
     }
 

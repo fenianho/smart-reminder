@@ -292,10 +292,10 @@ class ScheduleReminderUseCase @Inject constructor() {
                     }
                     MonthlyRepeatType.BY_WEEKDAY -> {
                         // 按星期几重复
-                        val weekNumber = reminder.monthlyRepeatWeek ?: 1
-                        val dayOfWeek = reminder.monthlyRepeatDayOfWeek ?: 1
+                        val weekNumbers = reminder.monthlyRepeatWeeks ?: setOf(1)
+                        val daysOfWeek = reminder.monthlyRepeatDaysOfWeek ?: setOf(1)
                         
-                        Log.d(TAG, "Monthly repeat by weekday - weekNumber: $weekNumber, dayOfWeek: $dayOfWeek")
+                        Log.d(TAG, "Monthly repeat by weekday - weekNumbers: $weekNumbers, daysOfWeek: $daysOfWeek")
                         
                         // 映射我们的1-7系统到Calendar常量
                         val dayOfWeekMap = mapOf(
@@ -308,57 +308,61 @@ class ScheduleReminderUseCase @Inject constructor() {
                             7 to Calendar.SUNDAY
                         )
                         
-                        val targetDayOfWeek = dayOfWeekMap[dayOfWeek] ?: Calendar.MONDAY
-                        
-                        val targetCalendar = baseCalendar.clone() as Calendar
-                        
-                        // 设置到正确的星期几
-                        targetCalendar.set(Calendar.DAY_OF_WEEK, targetDayOfWeek)
-                        
-                        // 调整到正确的星期数
-                        if (weekNumber > 0) {
-                            // 第1-4个星期
-                            targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, weekNumber)
-                        } else {
-                            // 最后一个星期
-                            targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, -1)
-                        }
-                        
-                        // 确保时间部分与原始提醒时间一致
-                        val originalCalendar = Calendar.getInstance().apply {
-                            timeInMillis = reminder.reminderTime
-                        }
-                        targetCalendar.set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
-                        targetCalendar.set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
-                        targetCalendar.set(Calendar.SECOND, 0)
-                        targetCalendar.set(Calendar.MILLISECOND, 0)
-                        
-                        Log.d(TAG, "Target calendar before month check: ${Date(targetCalendar.timeInMillis)}")
-                        
-                        // 检查计算出的时间是否已经过了
-                        if (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
-                            // 如果时间已经过了，移到下个月
-                            targetCalendar.add(Calendar.MONTH, 1)
-                            
-                            // 重新设置到正确的星期几和星期数
-                            targetCalendar.set(Calendar.DAY_OF_WEEK, targetDayOfWeek)
-                            if (weekNumber > 0) {
-                                targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, weekNumber)
-                            } else {
-                                targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, -1)
+                        for (weekNumber in weekNumbers) {
+                            for (dayOfWeek in daysOfWeek) {
+                                val targetDayOfWeek = dayOfWeekMap[dayOfWeek] ?: Calendar.MONDAY
+                                
+                                val targetCalendar = baseCalendar.clone() as Calendar
+                                
+                                // 设置到正确的星期几
+                                targetCalendar.set(Calendar.DAY_OF_WEEK, targetDayOfWeek)
+                                
+                                // 调整到正确的星期数
+                                if (weekNumber > 0) {
+                                    // 第1-4个星期
+                                    targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, weekNumber)
+                                } else {
+                                    // 最后一个星期
+                                    targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, -1)
+                                }
+                                
+                                // 确保时间部分与原始提醒时间一致
+                                val originalCalendar = Calendar.getInstance().apply {
+                                    timeInMillis = reminder.reminderTime
+                                }
+                                targetCalendar.set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
+                                targetCalendar.set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
+                                targetCalendar.set(Calendar.SECOND, 0)
+                                targetCalendar.set(Calendar.MILLISECOND, 0)
+                                
+                                Log.d(TAG, "Target calendar before month check: ${Date(targetCalendar.timeInMillis)}")
+                                
+                                // 检查计算出的时间是否已经过了
+                                if (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
+                                    // 如果时间已经过了，移到下个月
+                                    targetCalendar.add(Calendar.MONTH, 1)
+                                    
+                                    // 重新设置到正确的星期几和星期数
+                                    targetCalendar.set(Calendar.DAY_OF_WEEK, targetDayOfWeek)
+                                    if (weekNumber > 0) {
+                                        targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, weekNumber)
+                                    } else {
+                                        targetCalendar.set(Calendar.DAY_OF_WEEK_IN_MONTH, -1)
+                                    }
+                                    
+                                    // 再次设置时间部分
+                                    targetCalendar.set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
+                                    targetCalendar.set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
+                                    targetCalendar.set(Calendar.SECOND, 0)
+                                    targetCalendar.set(Calendar.MILLISECOND, 0)
+                                    
+                                    Log.d(TAG, "Adjusted to next month: ${Date(targetCalendar.timeInMillis)}")
+                                }
+                                
+                                scheduledTimes.add(targetCalendar.timeInMillis)
+                                Log.d(TAG, "Added next monthly reminder time (by weekday): ${Date(targetCalendar.timeInMillis)}")
                             }
-                            
-                            // 再次设置时间部分
-                            targetCalendar.set(Calendar.HOUR_OF_DAY, originalCalendar.get(Calendar.HOUR_OF_DAY))
-                            targetCalendar.set(Calendar.MINUTE, originalCalendar.get(Calendar.MINUTE))
-                            targetCalendar.set(Calendar.SECOND, 0)
-                            targetCalendar.set(Calendar.MILLISECOND, 0)
-                            
-                            Log.d(TAG, "Adjusted to next month: ${Date(targetCalendar.timeInMillis)}")
                         }
-                        
-                        scheduledTimes.add(targetCalendar.timeInMillis)
-                        Log.d(TAG, "Added next monthly reminder time (by weekday): ${Date(targetCalendar.timeInMillis)}")
                     }
                     null -> {
                         // 默认按月重复（使用原始日期）

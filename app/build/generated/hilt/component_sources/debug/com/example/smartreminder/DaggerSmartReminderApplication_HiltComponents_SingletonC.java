@@ -568,7 +568,7 @@ public final class DaggerSmartReminderApplication_HiltComponents_SingletonC {
           return (T) new ReminderDetailViewModel(viewModelCImpl.getReminderByIdUseCase(), viewModelCImpl.deleteReminderUseCase());
 
           case 4: // com.example.smartreminder.presentation.viewmodel.ReminderListViewModel 
-          return (T) new ReminderListViewModel(viewModelCImpl.getAllRemindersUseCase(), viewModelCImpl.createReminderUseCase(), new ScheduleReminderUseCase(), viewModelCImpl.updateReminderUseCase());
+          return (T) new ReminderListViewModel(viewModelCImpl.getAllRemindersUseCase(), viewModelCImpl.createReminderUseCase(), viewModelCImpl.updateReminderUseCase(), new ScheduleReminderUseCase(), singletonCImpl.provideReminderSchedulerProvider.get());
 
           default: throw new AssertionError(id);
         }

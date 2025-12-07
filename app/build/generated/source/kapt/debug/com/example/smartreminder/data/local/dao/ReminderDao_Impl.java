@@ -47,7 +47,7 @@ public final class ReminderDao_Impl implements ReminderDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `reminders` (`id`,`title`,`description`,`reminderTime`,`isActive`,`repeatType`,`repeatInterval`,`repeatDays`,`monthlyRepeatType`,`monthlyRepeatDays`,`monthlyRepeatWeek`,`monthlyRepeatDayOfWeek`,`createdAt`,`updatedAt`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `reminders` (`id`,`title`,`description`,`reminderTime`,`isActive`,`repeatType`,`repeatInterval`,`repeatDays`,`monthlyRepeatType`,`monthlyRepeatDays`,`monthlyRepeatWeeks`,`monthlyRepeatDaysOfWeek`,`createdAt`,`updatedAt`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -92,15 +92,15 @@ public final class ReminderDao_Impl implements ReminderDao {
         } else {
           statement.bindString(10, entity.getMonthlyRepeatDays());
         }
-        if (entity.getMonthlyRepeatWeek() == null) {
+        if (entity.getMonthlyRepeatWeeks() == null) {
           statement.bindNull(11);
         } else {
-          statement.bindLong(11, entity.getMonthlyRepeatWeek());
+          statement.bindString(11, entity.getMonthlyRepeatWeeks());
         }
-        if (entity.getMonthlyRepeatDayOfWeek() == null) {
+        if (entity.getMonthlyRepeatDaysOfWeek() == null) {
           statement.bindNull(12);
         } else {
-          statement.bindLong(12, entity.getMonthlyRepeatDayOfWeek());
+          statement.bindString(12, entity.getMonthlyRepeatDaysOfWeek());
         }
         statement.bindLong(13, entity.getCreatedAt());
         statement.bindLong(14, entity.getUpdatedAt());
@@ -123,7 +123,7 @@ public final class ReminderDao_Impl implements ReminderDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `reminders` SET `id` = ?,`title` = ?,`description` = ?,`reminderTime` = ?,`isActive` = ?,`repeatType` = ?,`repeatInterval` = ?,`repeatDays` = ?,`monthlyRepeatType` = ?,`monthlyRepeatDays` = ?,`monthlyRepeatWeek` = ?,`monthlyRepeatDayOfWeek` = ?,`createdAt` = ?,`updatedAt` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `reminders` SET `id` = ?,`title` = ?,`description` = ?,`reminderTime` = ?,`isActive` = ?,`repeatType` = ?,`repeatInterval` = ?,`repeatDays` = ?,`monthlyRepeatType` = ?,`monthlyRepeatDays` = ?,`monthlyRepeatWeeks` = ?,`monthlyRepeatDaysOfWeek` = ?,`createdAt` = ?,`updatedAt` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -168,15 +168,15 @@ public final class ReminderDao_Impl implements ReminderDao {
         } else {
           statement.bindString(10, entity.getMonthlyRepeatDays());
         }
-        if (entity.getMonthlyRepeatWeek() == null) {
+        if (entity.getMonthlyRepeatWeeks() == null) {
           statement.bindNull(11);
         } else {
-          statement.bindLong(11, entity.getMonthlyRepeatWeek());
+          statement.bindString(11, entity.getMonthlyRepeatWeeks());
         }
-        if (entity.getMonthlyRepeatDayOfWeek() == null) {
+        if (entity.getMonthlyRepeatDaysOfWeek() == null) {
           statement.bindNull(12);
         } else {
-          statement.bindLong(12, entity.getMonthlyRepeatDayOfWeek());
+          statement.bindString(12, entity.getMonthlyRepeatDaysOfWeek());
         }
         statement.bindLong(13, entity.getCreatedAt());
         statement.bindLong(14, entity.getUpdatedAt());
@@ -295,8 +295,8 @@ public final class ReminderDao_Impl implements ReminderDao {
           final int _cursorIndexOfRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "repeatDays");
           final int _cursorIndexOfMonthlyRepeatType = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatType");
           final int _cursorIndexOfMonthlyRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDays");
-          final int _cursorIndexOfMonthlyRepeatWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeek");
-          final int _cursorIndexOfMonthlyRepeatDayOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDayOfWeek");
+          final int _cursorIndexOfMonthlyRepeatWeeks = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeeks");
+          final int _cursorIndexOfMonthlyRepeatDaysOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDaysOfWeek");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final List<ReminderEntity> _result = new ArrayList<ReminderEntity>(_cursor.getCount());
@@ -352,23 +352,23 @@ public final class ReminderDao_Impl implements ReminderDao {
             } else {
               _tmpMonthlyRepeatDays = _cursor.getString(_cursorIndexOfMonthlyRepeatDays);
             }
-            final Integer _tmpMonthlyRepeatWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeek)) {
-              _tmpMonthlyRepeatWeek = null;
+            final String _tmpMonthlyRepeatWeeks;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeeks)) {
+              _tmpMonthlyRepeatWeeks = null;
             } else {
-              _tmpMonthlyRepeatWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatWeek);
+              _tmpMonthlyRepeatWeeks = _cursor.getString(_cursorIndexOfMonthlyRepeatWeeks);
             }
-            final Integer _tmpMonthlyRepeatDayOfWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDayOfWeek)) {
-              _tmpMonthlyRepeatDayOfWeek = null;
+            final String _tmpMonthlyRepeatDaysOfWeek;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDaysOfWeek)) {
+              _tmpMonthlyRepeatDaysOfWeek = null;
             } else {
-              _tmpMonthlyRepeatDayOfWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatDayOfWeek);
+              _tmpMonthlyRepeatDaysOfWeek = _cursor.getString(_cursorIndexOfMonthlyRepeatDaysOfWeek);
             }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _item = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeek,_tmpMonthlyRepeatDayOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
+            _item = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeeks,_tmpMonthlyRepeatDaysOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
             _result.add(_item);
           }
           return _result;
@@ -404,8 +404,8 @@ public final class ReminderDao_Impl implements ReminderDao {
           final int _cursorIndexOfRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "repeatDays");
           final int _cursorIndexOfMonthlyRepeatType = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatType");
           final int _cursorIndexOfMonthlyRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDays");
-          final int _cursorIndexOfMonthlyRepeatWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeek");
-          final int _cursorIndexOfMonthlyRepeatDayOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDayOfWeek");
+          final int _cursorIndexOfMonthlyRepeatWeeks = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeeks");
+          final int _cursorIndexOfMonthlyRepeatDaysOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDaysOfWeek");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final List<ReminderEntity> _result = new ArrayList<ReminderEntity>(_cursor.getCount());
@@ -461,23 +461,23 @@ public final class ReminderDao_Impl implements ReminderDao {
             } else {
               _tmpMonthlyRepeatDays = _cursor.getString(_cursorIndexOfMonthlyRepeatDays);
             }
-            final Integer _tmpMonthlyRepeatWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeek)) {
-              _tmpMonthlyRepeatWeek = null;
+            final String _tmpMonthlyRepeatWeeks;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeeks)) {
+              _tmpMonthlyRepeatWeeks = null;
             } else {
-              _tmpMonthlyRepeatWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatWeek);
+              _tmpMonthlyRepeatWeeks = _cursor.getString(_cursorIndexOfMonthlyRepeatWeeks);
             }
-            final Integer _tmpMonthlyRepeatDayOfWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDayOfWeek)) {
-              _tmpMonthlyRepeatDayOfWeek = null;
+            final String _tmpMonthlyRepeatDaysOfWeek;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDaysOfWeek)) {
+              _tmpMonthlyRepeatDaysOfWeek = null;
             } else {
-              _tmpMonthlyRepeatDayOfWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatDayOfWeek);
+              _tmpMonthlyRepeatDaysOfWeek = _cursor.getString(_cursorIndexOfMonthlyRepeatDaysOfWeek);
             }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _item = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeek,_tmpMonthlyRepeatDayOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
+            _item = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeeks,_tmpMonthlyRepeatDaysOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
             _result.add(_item);
           }
           return _result;
@@ -515,8 +515,8 @@ public final class ReminderDao_Impl implements ReminderDao {
           final int _cursorIndexOfRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "repeatDays");
           final int _cursorIndexOfMonthlyRepeatType = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatType");
           final int _cursorIndexOfMonthlyRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDays");
-          final int _cursorIndexOfMonthlyRepeatWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeek");
-          final int _cursorIndexOfMonthlyRepeatDayOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDayOfWeek");
+          final int _cursorIndexOfMonthlyRepeatWeeks = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeeks");
+          final int _cursorIndexOfMonthlyRepeatDaysOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDaysOfWeek");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final ReminderEntity _result;
@@ -571,23 +571,23 @@ public final class ReminderDao_Impl implements ReminderDao {
             } else {
               _tmpMonthlyRepeatDays = _cursor.getString(_cursorIndexOfMonthlyRepeatDays);
             }
-            final Integer _tmpMonthlyRepeatWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeek)) {
-              _tmpMonthlyRepeatWeek = null;
+            final String _tmpMonthlyRepeatWeeks;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeeks)) {
+              _tmpMonthlyRepeatWeeks = null;
             } else {
-              _tmpMonthlyRepeatWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatWeek);
+              _tmpMonthlyRepeatWeeks = _cursor.getString(_cursorIndexOfMonthlyRepeatWeeks);
             }
-            final Integer _tmpMonthlyRepeatDayOfWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDayOfWeek)) {
-              _tmpMonthlyRepeatDayOfWeek = null;
+            final String _tmpMonthlyRepeatDaysOfWeek;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDaysOfWeek)) {
+              _tmpMonthlyRepeatDaysOfWeek = null;
             } else {
-              _tmpMonthlyRepeatDayOfWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatDayOfWeek);
+              _tmpMonthlyRepeatDaysOfWeek = _cursor.getString(_cursorIndexOfMonthlyRepeatDaysOfWeek);
             }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _result = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeek,_tmpMonthlyRepeatDayOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
+            _result = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeeks,_tmpMonthlyRepeatDaysOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
           } else {
             _result = null;
           }
@@ -629,8 +629,8 @@ public final class ReminderDao_Impl implements ReminderDao {
           final int _cursorIndexOfRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "repeatDays");
           final int _cursorIndexOfMonthlyRepeatType = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatType");
           final int _cursorIndexOfMonthlyRepeatDays = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDays");
-          final int _cursorIndexOfMonthlyRepeatWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeek");
-          final int _cursorIndexOfMonthlyRepeatDayOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDayOfWeek");
+          final int _cursorIndexOfMonthlyRepeatWeeks = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatWeeks");
+          final int _cursorIndexOfMonthlyRepeatDaysOfWeek = CursorUtil.getColumnIndexOrThrow(_cursor, "monthlyRepeatDaysOfWeek");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final List<ReminderEntity> _result = new ArrayList<ReminderEntity>(_cursor.getCount());
@@ -686,23 +686,23 @@ public final class ReminderDao_Impl implements ReminderDao {
             } else {
               _tmpMonthlyRepeatDays = _cursor.getString(_cursorIndexOfMonthlyRepeatDays);
             }
-            final Integer _tmpMonthlyRepeatWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeek)) {
-              _tmpMonthlyRepeatWeek = null;
+            final String _tmpMonthlyRepeatWeeks;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatWeeks)) {
+              _tmpMonthlyRepeatWeeks = null;
             } else {
-              _tmpMonthlyRepeatWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatWeek);
+              _tmpMonthlyRepeatWeeks = _cursor.getString(_cursorIndexOfMonthlyRepeatWeeks);
             }
-            final Integer _tmpMonthlyRepeatDayOfWeek;
-            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDayOfWeek)) {
-              _tmpMonthlyRepeatDayOfWeek = null;
+            final String _tmpMonthlyRepeatDaysOfWeek;
+            if (_cursor.isNull(_cursorIndexOfMonthlyRepeatDaysOfWeek)) {
+              _tmpMonthlyRepeatDaysOfWeek = null;
             } else {
-              _tmpMonthlyRepeatDayOfWeek = _cursor.getInt(_cursorIndexOfMonthlyRepeatDayOfWeek);
+              _tmpMonthlyRepeatDaysOfWeek = _cursor.getString(_cursorIndexOfMonthlyRepeatDaysOfWeek);
             }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _item = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeek,_tmpMonthlyRepeatDayOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
+            _item = new ReminderEntity(_tmpId,_tmpTitle,_tmpDescription,_tmpReminderTime,_tmpIsActive,_tmpRepeatType,_tmpRepeatInterval,_tmpRepeatDays,_tmpMonthlyRepeatType,_tmpMonthlyRepeatDays,_tmpMonthlyRepeatWeeks,_tmpMonthlyRepeatDaysOfWeek,_tmpCreatedAt,_tmpUpdatedAt);
             _result.add(_item);
           }
           return _result;

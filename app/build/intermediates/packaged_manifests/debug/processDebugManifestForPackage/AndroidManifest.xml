@@ -46,11 +46,6 @@
             </intent-filter>
         </activity>
 
-        <!-- 提醒通知服务 -->
-        <service
-            android:name="com.example.smartreminder.service.notification.ReminderNotificationService"
-            android:exported="false" />
-
         <!-- WorkManager Worker -->
         <provider
             android:name="androidx.startup.InitializationProvider"

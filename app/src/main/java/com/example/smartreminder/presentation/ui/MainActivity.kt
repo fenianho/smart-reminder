@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,7 +22,9 @@ class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        // 处理权限请求结果
+        if (!isGranted) {
+            Toast.makeText(this, "需要通知权限才能接收提醒", Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,8 +54,13 @@ class MainActivity : ComponentActivity() {
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     // 权限已授予
                 }
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    // 显示权限说明后再请求权限
+                    Toast.makeText(this, "需要通知权限才能接收提醒通知", Toast.LENGTH_LONG).show()
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
                 else -> {
-                    // 请求权限
+                    // 直接请求权限
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }

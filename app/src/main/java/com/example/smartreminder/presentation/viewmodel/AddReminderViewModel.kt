@@ -19,6 +19,7 @@ import javax.inject.Inject
 data class AddReminderState(
     val isLoading: Boolean = false,
     val error: String? = null,
+    val errorMessage: String? = null, // 添加错误消息字段
     val aiParseResult: com.example.smartreminder.domain.model.AiParseResult? = null,
     val isAiParsing: Boolean = false,
     val isSaved: Boolean = false
@@ -29,6 +30,7 @@ sealed class AddReminderEvent {
     data class CreateReminder(val reminder: Reminder) : AddReminderEvent()
     object ClearError : AddReminderEvent()
     object ResetSavedState : AddReminderEvent()
+    data class ShowErrorMessage(val message: String) : AddReminderEvent() // 添加显示错误消息事件
 }
 
 @HiltViewModel
@@ -45,10 +47,11 @@ class AddReminderViewModel @Inject constructor(
 
     fun onEvent(event: AddReminderEvent) {
         when (event) {
-            is AddReminderEvent.ParseText -> parseReminderText(event.text)
             is AddReminderEvent.CreateReminder -> createReminder(event.reminder)
-            is AddReminderEvent.ClearError -> _state.update { it.copy(error = null) }
+            is AddReminderEvent.ParseText -> parseReminderText(event.text)
+            is AddReminderEvent.ClearError -> _state.update { it.copy(error = null, errorMessage = null) }
             is AddReminderEvent.ResetSavedState -> _state.update { it.copy(isSaved = false) }
+            is AddReminderEvent.ShowErrorMessage -> showErrorMessage(event.message)
         }
     }
 
@@ -97,10 +100,14 @@ class AddReminderViewModel @Inject constructor(
         }
     }
 
+    private fun showErrorMessage(message: String) {
+        _state.update { it.copy(errorMessage = message) }
+    }
+
     private fun createReminder(reminder: Reminder) {
         Log.d(TAG, "Creating reminder: ${reminder.title}, repeatType: ${reminder.repeatType}, repeatDays: ${reminder.repeatDays}")
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 val result = createReminderUseCase(reminder)
                 if (result.isSuccess) {
@@ -117,30 +124,16 @@ class AddReminderViewModel @Inject constructor(
                         Log.d(TAG, "Reminder created and scheduled successfully")
                     } else {
                         Log.e(TAG, "Failed to get reminder ID after creation")
-                        _state.update {
-                            it.copy(
-                                error = "Failed to get reminder ID",
-                                isLoading = false
-                            )
-                        }
+                        _state.update { it.copy(isLoading = false, errorMessage = "Failed to create reminder") }
                     }
                 } else {
-                    Log.e(TAG, "Failed to create reminder: ${reminder.title}")
-                    _state.update {
-                        it.copy(
-                            error = result.exceptionOrNull()?.message ?: "Failed to create reminder",
-                            isLoading = false
-                        )
-                    }
+                    val errorMsg = result.exceptionOrNull()?.message ?: "Failed to create reminder"
+                    Log.e(TAG, "Failed to create reminder: $errorMsg")
+                    _state.update { it.copy(isLoading = false, errorMessage = errorMsg) }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Exception while creating reminder: ${reminder.title}", e)
-                _state.update {
-                    it.copy(
-                        error = e.message ?: "Failed to create reminder",
-                        isLoading = false
-                    )
-                }
+                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
     }

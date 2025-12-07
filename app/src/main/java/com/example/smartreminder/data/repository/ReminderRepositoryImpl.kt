@@ -58,10 +58,9 @@ class ReminderRepositoryImpl @Inject constructor(
             repeatDays = reminder.repeatDays?.joinToString(","),
             monthlyRepeatType = reminder.monthlyRepeatType?.name,
             monthlyRepeatDays = reminder.monthlyRepeatDays?.joinToString(","),
-            monthlyRepeatWeek = reminder.monthlyRepeatWeek,
-            monthlyRepeatDayOfWeek = reminder.monthlyRepeatDayOfWeek,
+            monthlyRepeatWeeks = reminder.monthlyRepeatWeeks?.joinToString(","),
+            monthlyRepeatDaysOfWeek = reminder.monthlyRepeatDaysOfWeek?.joinToString(","),
             createdAt = reminder.createdAt,
-            updatedAt = reminder.updatedAt
         )
     }
 
@@ -77,10 +76,9 @@ class ReminderRepositoryImpl @Inject constructor(
             repeatDays = repeatDays?.split(",")?.mapNotNull { it.toIntOrNull() }?.toSet(),
             monthlyRepeatType = monthlyRepeatType?.let { MonthlyRepeatType.valueOf(it) },
             monthlyRepeatDays = monthlyRepeatDays?.split(",")?.mapNotNull { it.toIntOrNull() }?.toSet(),
-            monthlyRepeatWeek = monthlyRepeatWeek,
-            monthlyRepeatDayOfWeek = monthlyRepeatDayOfWeek,
+            monthlyRepeatWeeks = monthlyRepeatWeeks?.split(",")?.mapNotNull { it.toIntOrNull() }?.toSet(),
+            monthlyRepeatDaysOfWeek = monthlyRepeatDaysOfWeek?.split(",")?.mapNotNull { it.toIntOrNull() }?.toSet(),
             createdAt = createdAt,
-            updatedAt = updatedAt
         )
     }
 }

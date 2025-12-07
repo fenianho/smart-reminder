@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,6 +28,7 @@ import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.datetime.time.timepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -47,8 +50,8 @@ fun EditReminderScreen(
     var repeatDays by remember { mutableStateOf(setOf<Int>()) }
     var monthlyRepeatType by remember { mutableStateOf(MonthlyRepeatType.BY_DATE) }
     var monthlyRepeatDays by remember { mutableStateOf(setOf<Int>()) }
-    var monthlyRepeatWeek by remember { mutableStateOf<Int?>(null) }
-    var monthlyRepeatDayOfWeek by remember { mutableStateOf<Int?>(null) }
+    var monthlyRepeatWeeks by remember { mutableStateOf(setOf<Int>()) }
+    var monthlyRepeatDaysOfWeek by remember { mutableStateOf(setOf<Int>()) }
 
     val dateDialogState = rememberMaterialDialogState()
     val timeDialogState = rememberMaterialDialogState()
@@ -61,6 +64,29 @@ fun EditReminderScreen(
             // 立即导航回去，然后显示提示
             onNavigateBack()
             snackbarHostState.showSnackbar("Reminder updated successfully!")
+        }
+    }
+
+    // 监听错误消息并显示（只在非空消息时显示，自动 3 秒后消失并清除错误）
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { msg ->
+            if (msg.isNotBlank()) {
+                // Launch the snackbar display so we can delay and then dismiss after 3s.
+                val job = launch {
+                    // Show indefinitely so we can control exact duration
+                    snackbarHostState.showSnackbar(msg, duration = SnackbarDuration.Indefinite)
+                }
+
+                // Wait for 3 seconds then dismiss the snackbar if still visible
+                delay(3000)
+                snackbarHostState.currentSnackbarData?.dismiss()
+
+                // Clear the error via ClearError so state.errorMessage becomes null
+                viewModel.onEvent(com.example.smartreminder.presentation.viewmodel.EditReminderEvent.ClearError)
+
+                // Cancel the show job if it's still active
+                job.cancel()
+            }
         }
     }
 
@@ -84,8 +110,8 @@ fun EditReminderScreen(
             repeatDays = reminder.repeatDays ?: emptySet()
             monthlyRepeatType = reminder.monthlyRepeatType ?: MonthlyRepeatType.BY_DATE
             monthlyRepeatDays = reminder.monthlyRepeatDays ?: emptySet()
-            monthlyRepeatWeek = reminder.monthlyRepeatWeek
-            monthlyRepeatDayOfWeek = reminder.monthlyRepeatDayOfWeek
+            monthlyRepeatWeeks = reminder.monthlyRepeatWeeks ?: emptySet()
+            monthlyRepeatDaysOfWeek = reminder.monthlyRepeatDaysOfWeek ?: emptySet()
         }
     }
 
@@ -144,14 +170,14 @@ fun EditReminderScreen(
                         onClick = { dateDialogState.show() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("开始日期: ${selectedDateTime.toLocalDate()}")
+                        Text("Date: ${selectedDateTime.toLocalDate()}")
                     }
 
                     OutlinedButton(
                         onClick = { timeDialogState.show() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("开始时间: ${selectedDateTime.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))}")
+                        Text("Time: ${selectedDateTime.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))}")
                     }
                 }
 
@@ -325,7 +351,7 @@ fun EditReminderScreen(
                     // By weekday options
                     if (monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) {
                         Text(
-                            text = "Select weekday",
+                            text = "Select weekdays",
                             style = MaterialTheme.typography.titleMedium
                         )
                         
@@ -338,7 +364,7 @@ fun EditReminderScreen(
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(
-                                    text = "Week",
+                                    text = "Weeks",
                                     style = MaterialTheme.typography.titleSmall
                                 )
                                 
@@ -355,12 +381,18 @@ fun EditReminderScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { monthlyRepeatWeek = weekValue }
+                                            .clickable {
+                                                monthlyRepeatWeeks = if (weekValue in monthlyRepeatWeeks) {
+                                                    monthlyRepeatWeeks - weekValue
+                                                } else {
+                                                    monthlyRepeatWeeks + weekValue
+                                                }
+                                            }
                                             .padding(vertical = 4.dp)
                                     ) {
-                                        RadioButton(
-                                            selected = monthlyRepeatWeek == weekValue,
-                                            onClick = { monthlyRepeatWeek = weekValue }
+                                        Checkbox(
+                                            checked = weekValue in monthlyRepeatWeeks,
+                                            onCheckedChange = null // 已在clickable中处理
                                         )
                                         Text(
                                             text = weekName,
@@ -370,12 +402,12 @@ fun EditReminderScreen(
                                 }
                             }
                             
-                            // Day of week selection
+                            // Days of week selection
                             Column(
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(
-                                    text = "Day",
+                                    text = "Days",
                                     style = MaterialTheme.typography.titleSmall
                                 )
                                 
@@ -394,12 +426,18 @@ fun EditReminderScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { monthlyRepeatDayOfWeek = dayValue }
+                                            .clickable {
+                                                monthlyRepeatDaysOfWeek = if (dayValue in monthlyRepeatDaysOfWeek) {
+                                                    monthlyRepeatDaysOfWeek - dayValue
+                                                } else {
+                                                    monthlyRepeatDaysOfWeek + dayValue
+                                                }
+                                            }
                                             .padding(vertical = 4.dp)
                                     ) {
-                                        RadioButton(
-                                            selected = monthlyRepeatDayOfWeek == dayValue,
-                                            onClick = { monthlyRepeatDayOfWeek = dayValue }
+                                        Checkbox(
+                                            checked = dayValue in monthlyRepeatDaysOfWeek,
+                                            onCheckedChange = null // 已在clickable中处理
                                         )
                                         Text(
                                             text = dayName,
@@ -441,8 +479,8 @@ fun EditReminderScreen(
                             repeatDays = if (repeatType == RepeatType.WEEKLY) repeatDays else null,
                             monthlyRepeatType = if (repeatType == RepeatType.MONTHLY) monthlyRepeatType else null,
                             monthlyRepeatDays = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_DATE) monthlyRepeatDays else null,
-                            monthlyRepeatWeek = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatWeek else null,
-                            monthlyRepeatDayOfWeek = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatDayOfWeek else null,
+                            monthlyRepeatWeeks = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatWeeks else null,
+                            monthlyRepeatDaysOfWeek = if (repeatType == RepeatType.MONTHLY && monthlyRepeatType == MonthlyRepeatType.BY_WEEKDAY) monthlyRepeatDaysOfWeek else null,
                             isActive = isActive,
                             createdAt = state.reminder?.createdAt ?: System.currentTimeMillis(),
                             updatedAt = System.currentTimeMillis()
@@ -481,9 +519,15 @@ fun EditReminderScreen(
         datepicker(
             initialDate = selectedDateTime.toLocalDate(),
             onDateChange = { date ->
-                selectedDateTime = selectedDateTime.withYear(date.year)
-                    .withMonth(date.monthValue)
-                    .withDayOfMonth(date.dayOfMonth)
+                // Check if selected date is in the past
+                if (date.isBefore(LocalDate.now())) {
+                    // Show error message if date is in the past
+                    viewModel.onEvent(EditReminderEvent.ShowErrorMessage("Cannot select a date in the past. Please choose a future date."))
+                } else {
+                    selectedDateTime = selectedDateTime.withYear(date.year)
+                        .withMonth(date.monthValue)
+                        .withDayOfMonth(date.dayOfMonth)
+                }
             }
         )
     }
