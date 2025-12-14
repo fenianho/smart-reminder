@@ -1,2 +1,141 @@
+# Android Smart Reminder App - Professional optimized .gitignore
+# Targeting Kotlin + Jetpack Compose + AI integrated Android application
+
+# ======================== Build system and output files ========================
+.gradle/
+build/
+*/build/
+*.gradle
+gradle.properties.save
+
+*.apk
+*.ap_
+*.aab
+*.jar
 *.class
 *.dex
+*.hprof
+*.so
+*.o
+
+# ======================== Local configuration and sensitive files ========================
+local.properties
+*.keystore
+*.jks
+secrets.properties
+secret.properties
+.env
+.env.*
+google-services.json
+GoogleService-Info.plist
+
+# ======================== IDE and development tool files ========================
+## Android Studio/IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+captures/
+.navigation/
+*.swp
+*.swo
+*~
+
+## VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+## Eclipse and others
+.project
+.classpath
+.settings/
+bin/
+
+# ======================== Operating system specific files ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ======================== Temporary, cache and log files ========================
+*.tmp
+*.temp
+*.bak
+*.old
+*.log
+*.cache
+.cache/
+tmp/
+temp/
+log/
+logs/
+
+# ======================== Database files ========================
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+
+# ======================== AI/Machine learning related files ========================
+*.tflite
+*.lite
+*.model
+*.pb
+*.onnx
+*.pth
+*.pt
+*.h5
+*.ckpt
+
+# ======================== Project generation and compilation files ========================
+gen/
+out/
+.generated/
+app/build/
+!app/build.gradle.kts
+.gradle/file-system.probe
+
+# ======================== Test and coverage files ========================
+coverage/
+.nyc_output/
+test-results/
+build/reports/
+
+# ======================== Version control temporary files ========================
+*.orig
+*.rej
+
+# ======================== Other miscellaneous ========================
+*.dat
+*.exe
+*.dll
+*~
+.fseventsd/
+.TemporaryItems/
+.Trashes/
+
+# ======================== Specific project files ========================
+# Redundant directory under project root
+smart-reminder/
+# Kotlin compiler cache
+.kotlin/
+# Project local configuration (exists but confirmed again)
+local.properties
+
+# ======================== Project specific notes ========================
+# The following files should usually be submitted to version control:
+# - gradle/wrapper/gradle-wrapper.jar
+# - gradle/wrapper/gradle-wrapper.properties  
+# - gradle.properties (note sensitive information)
+# - settings.gradle.kts
+# - build.gradle.kts
+# - app/build.gradle.kts
