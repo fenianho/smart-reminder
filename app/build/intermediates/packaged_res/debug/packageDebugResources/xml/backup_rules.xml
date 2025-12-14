@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<full-backup-content>
-    <!-- 可以在这里指定备份规则 -->
-    <!-- 例如：
-    <include domain="database" path="reminders.db"/>
-    -->
-</full-backup-content>

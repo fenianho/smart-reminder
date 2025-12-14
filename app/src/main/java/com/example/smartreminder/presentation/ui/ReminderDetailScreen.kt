@@ -151,6 +151,27 @@ private fun ReminderDetailContent(
     reminder: Reminder,
     modifier: Modifier = Modifier
 ) {
+    // 计算显示的提醒时间（对于重复提醒，显示下次提醒时间）
+    var displayTime by remember(reminder.id, reminder.reminderTime) { 
+        mutableStateOf(reminder.reminderTime) 
+    }
+    
+    // 如果是重复提醒且时间已过，则计算下次提醒时间
+    LaunchedEffect(reminder.id, reminder.reminderTime) {
+        if (reminder.repeatType != com.example.smartreminder.domain.model.RepeatType.NONE && 
+            reminder.reminderTime <= System.currentTimeMillis() && 
+            reminder.isActive) {
+            
+            val scheduleUseCase = com.example.smartreminder.domain.usecase.ScheduleReminderUseCase()
+            val nextTimes = scheduleUseCase(reminder)
+            
+            if (nextTimes.isNotEmpty()) {
+                // 更新显示时间为下次提醒时间
+                displayTime = nextTimes.first()
+            }
+        }
+    }
+    
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -199,9 +220,20 @@ private fun ReminderDetailContent(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = formatReminderTime(reminder.reminderTime),
+                    text = formatReminderTime(displayTime),
                     style = MaterialTheme.typography.bodyLarge
                 )
+                
+                // 如果是重复提醒且显示的时间不同于原始时间，额外显示原始设置时间
+                if (reminder.repeatType != com.example.smartreminder.domain.model.RepeatType.NONE && 
+                    displayTime != reminder.reminderTime) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Originally set: ${formatReminderTime(reminder.reminderTime)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 

@@ -187,7 +187,7 @@ private fun ReminderCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            reminder.description?.let { description ->
+            reminder.description?.let { description -> 
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
@@ -202,9 +202,11 @@ private fun ReminderCard(
 
             CountdownTimerText(reminder = reminder)
 
+            // 显示详细的重复规则
             if (reminder.repeatType != RepeatType.NONE) {
+                val repeatRuleText = formatRepeatRule(reminder)
                 Text(
-                    text = "Repeats: ${reminder.repeatType.name}",
+                    text = repeatRuleText,
                     style = MaterialTheme.typography.bodySmall,
                     color = if (reminder.isActive) {
                         MaterialTheme.colorScheme.primary
@@ -219,32 +221,43 @@ private fun ReminderCard(
 
 @Composable
 private fun CountdownTimerText(reminder: Reminder) {
-    var displayTime by remember { mutableStateOf(reminder.reminderTime) }
+    var displayTime by remember(reminder.id, reminder.reminderTime) { mutableStateOf(reminder.reminderTime) }
     var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
     
-    // 当提醒是重复类型且当前时间已经超过显示时间时，计算下一次提醒时间
-    LaunchedEffect(reminder, displayTime, currentTime) {
-        if (reminder.repeatType != RepeatType.NONE && 
-            reminder.isActive && 
-            displayTime <= currentTime) {
-            
-            // 使用ScheduleReminderUseCase计算下一次提醒时间
-            val scheduleUseCase = ScheduleReminderUseCase()
-            val nextTimes = scheduleUseCase(reminder)
-            
-            if (nextTimes.isNotEmpty()) {
-                displayTime = nextTimes.first()
-            }
+    // 定期更新当前时间，确保倒计时正常工作
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000) // 每秒更新一次
+            currentTime = System.currentTimeMillis()
         }
     }
     
-    // 更新时间以触发动画
-    LaunchedEffect(reminder.isActive, displayTime) {
-        if (reminder.isActive && displayTime > currentTime) {
-            while (true) {
-                delay(1000) // 每秒更新一次
-                currentTime = System.currentTimeMillis()
+    // 计算并更新显示时间 - 统一处理初始设置和后续更新
+    LaunchedEffect(reminder, currentTime) {
+        // 始终基于当前的提醒状态和时间来决定显示时间
+        val newDisplayTime = when {
+            // 如果不是重复提醒，直接使用原始提醒时间
+            reminder.repeatType == RepeatType.NONE -> {
+                reminder.reminderTime
             }
+            // 如果是重复提醒但已停用，也使用原始时间
+            !reminder.isActive -> {
+                reminder.reminderTime
+            }
+            // 如果是重复提醒且当前时间已超过显示时间，计算下一个提醒时间
+            displayTime <= currentTime -> {
+                val scheduleUseCase = ScheduleReminderUseCase()
+                val nextTimes = scheduleUseCase(reminder)
+                if (nextTimes.isNotEmpty()) nextTimes.first() else reminder.reminderTime
+            }
+            // 否则保持当前显示时间
+            else -> {
+                displayTime
+            }
+        }
+        
+        if (newDisplayTime != displayTime) {
+            displayTime = newDisplayTime
         }
     }
     
@@ -278,6 +291,87 @@ private fun formatReminderTime(reminderTime: Long, currentTime: Long = System.cu
             val hours = diff / (60 * 60 * 1000)
             val minutes = (diff % (60 * 60 * 1000)) / (60 * 1000)
             String.format("In %d hr %d min", hours, minutes)
+        }
+    }
+}
+
+// 添加 formatRepeatRule 函数
+private fun formatRepeatRule(reminder: Reminder): String {
+    return when (reminder.repeatType) {
+        RepeatType.DAILY -> {
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = reminder.reminderTime
+            }
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            "Daily ${String.format("%02d:%02d", hour, minute)}"
+        }
+        RepeatType.WEEKLY -> {
+            val daysOfWeek = reminder.repeatDays ?: emptySet()
+            val dayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+            val selectedDays = daysOfWeek.sorted().map { dayIndex ->
+                if (dayIndex in 1..7) dayNames[dayIndex - 1] else "Unknown"
+            }.joinToString(", ")
+            
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = reminder.reminderTime
+            }
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            
+            "Weekly $selectedDays ${String.format("%02d:%02d", hour, minute)}"
+        }
+        RepeatType.MONTHLY -> {
+            val monthlyType = reminder.monthlyRepeatType
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = reminder.reminderTime
+            }
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            
+            when (monthlyType) {
+                com.example.smartreminder.domain.model.MonthlyRepeatType.BY_DATE -> {
+                    val days = reminder.monthlyRepeatDays ?: emptySet()
+                    val dayNumbers = days.sorted().joinToString(", ")
+                    "Monthly on days $dayNumbers ${String.format("%02d:%02d", hour, minute)}"
+                }
+                com.example.smartreminder.domain.model.MonthlyRepeatType.BY_WEEKDAY -> {
+                    val weekNumbers = reminder.monthlyRepeatWeeks ?: setOf(1)
+                    val daysOfWeek = reminder.monthlyRepeatDaysOfWeek ?: setOf(1)
+                    val weekText = when {
+                        weekNumbers.contains(-1) -> "last"
+                        weekNumbers.contains(1) && weekNumbers.size == 1 -> "first"
+                        weekNumbers.contains(2) && weekNumbers.size == 1 -> "second"
+                        weekNumbers.contains(3) && weekNumbers.size == 1 -> "third"
+                        weekNumbers.contains(4) && weekNumbers.size == 1 -> "fourth"
+                        else -> "weeks"
+                    }
+                    
+                    val dayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    val selectedDays = daysOfWeek.sorted().map { dayIndex ->
+                        if (dayIndex in 1..7) dayNames[dayIndex - 1] else "Unknown"
+                    }.joinToString(", ")
+                    
+                    "Monthly $weekText $selectedDays ${String.format("%02d:%02d", hour, minute)}"
+                }
+                null -> {
+                    "Monthly ${String.format("%02d:%02d", hour, minute)}"
+                }
+            }
+        }
+        RepeatType.YEARLY -> {
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = reminder.reminderTime
+            }
+            val month = calendar.get(Calendar.MONTH) + 1
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            
+            "Yearly ${String.format("%02d/%02d %02d:%02d", month, day, hour, minute)}"
+        }
+        else -> {
+            "Repeats: ${reminder.repeatType.name}"
         }
     }
 }

@@ -25,8 +25,8 @@ class ScheduleReminderUseCase @Inject constructor() {
                 }
                 
                 // 只计算下一次提醒时间
-                // 如果提醒时间已过，则计算明天的同一时间
-                if (calendar.timeInMillis <= System.currentTimeMillis()) {
+                // 如果提醒时间已过，则持续推进到下一个未来日期
+                while (calendar.timeInMillis <= System.currentTimeMillis()) {
                     calendar.add(Calendar.DAY_OF_YEAR, 1)
                 }
                 scheduledTimes.add(calendar.timeInMillis)
@@ -136,14 +136,11 @@ class ScheduleReminderUseCase @Inject constructor() {
                         
                         Log.d(TAG, "Target calendar before adjustment: ${Date(targetCalendar.timeInMillis)}")
                         
-                        // 再次检查时间是否已经过了
-                        if (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
-                            // 这种情况不应该发生，但如果发生了，确保时间是未来的
-                            do {
-                                targetCalendar.add(Calendar.DAY_OF_YEAR, 1)
-                            } while (targetCalendar.timeInMillis <= System.currentTimeMillis())
-                            Log.d(TAG, "Adjusted to future time: ${Date(targetCalendar.timeInMillis)}")
+                        // 再次检查时间是否已经过了，持续推进到未来
+                        while (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
+                            targetCalendar.add(Calendar.DAY_OF_YEAR, 1)
                         }
+                        Log.d(TAG, "Adjusted to future time: ${Date(targetCalendar.timeInMillis)}")
                         
                         scheduledTimes.add(targetCalendar.timeInMillis)
                         Log.d(TAG, "Added next weekly reminder time: ${Date(targetCalendar.timeInMillis)}")
@@ -154,8 +151,8 @@ class ScheduleReminderUseCase @Inject constructor() {
                         timeInMillis = reminder.reminderTime
                     }
                     
-                    // 如果提醒时间已过，则计算下周的同一时间
-                    if (calendar.timeInMillis <= System.currentTimeMillis()) {
+                    // 如果提醒时间已过，则持续推进到下一个未来时间
+                    while (calendar.timeInMillis <= System.currentTimeMillis()) {
                         calendar.add(Calendar.WEEK_OF_YEAR, 1)
                     }
                     scheduledTimes.add(calendar.timeInMillis)
@@ -273,6 +270,11 @@ class ScheduleReminderUseCase @Inject constructor() {
                                 
                                 Log.d(TAG, "Target calendar: ${Date(targetCalendar.timeInMillis)}")
                                 
+                                // 确保时间在未来
+                                while (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
+                                    targetCalendar.add(Calendar.MONTH, 1)
+                                }
+                                
                                 scheduledTimes.add(targetCalendar.timeInMillis)
                                 Log.d(TAG, "Added next monthly reminder time (by date): ${Date(targetCalendar.timeInMillis)}")
                             }
@@ -282,8 +284,8 @@ class ScheduleReminderUseCase @Inject constructor() {
                                 timeInMillis = reminder.reminderTime
                             }
                             
-                            // 如果提醒时间已过，则计算下个月的同一时间
-                            if (calendar.timeInMillis <= System.currentTimeMillis()) {
+                            // 如果提醒时间已过，则持续推进到下一个未来时间
+                            while (calendar.timeInMillis <= System.currentTimeMillis()) {
                                 calendar.add(Calendar.MONTH, 1)
                             }
                             scheduledTimes.add(calendar.timeInMillis)
@@ -337,9 +339,8 @@ class ScheduleReminderUseCase @Inject constructor() {
                                 
                                 Log.d(TAG, "Target calendar before month check: ${Date(targetCalendar.timeInMillis)}")
                                 
-                                // 检查计算出的时间是否已经过了
-                                if (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
-                                    // 如果时间已经过了，移到下个月
+                                // 检查计算出的时间是否已经过了，持续推进到未来
+                                while (targetCalendar.timeInMillis <= System.currentTimeMillis()) {
                                     targetCalendar.add(Calendar.MONTH, 1)
                                     
                                     // 重新设置到正确的星期几和星期数
@@ -370,8 +371,8 @@ class ScheduleReminderUseCase @Inject constructor() {
                             timeInMillis = reminder.reminderTime
                         }
                         
-                        // 如果提醒时间已过，则计算下个月的同一时间
-                        if (calendar.timeInMillis <= System.currentTimeMillis()) {
+                        // 如果提醒时间已过，则持续推进到下一个未来时间
+                        while (calendar.timeInMillis <= System.currentTimeMillis()) {
                             calendar.add(Calendar.MONTH, 1)
                         }
                         scheduledTimes.add(calendar.timeInMillis)
@@ -385,8 +386,8 @@ class ScheduleReminderUseCase @Inject constructor() {
                 }
                 
                 // 只计算下一次提醒时间
-                // 如果提醒时间已过，则计算下一年的同一时间
-                if (calendar.timeInMillis <= System.currentTimeMillis()) {
+                // 如果提醒时间已过，则持续推进到下一个未来时间
+                while (calendar.timeInMillis <= System.currentTimeMillis()) {
                     calendar.add(Calendar.YEAR, 1)
                 }
                 scheduledTimes.add(calendar.timeInMillis)
@@ -395,7 +396,10 @@ class ScheduleReminderUseCase @Inject constructor() {
         }
 
         // 最后再过滤一次，确保所有时间都是未来的
-        val filteredTimes = scheduledTimes.filter { it > System.currentTimeMillis() }.sorted()
+        // 加入1秒的时间容差，防止因系统时钟毫秒级差异导致的问题
+        val timeTolerance = 1000L // 1秒容差
+        val currentTime = System.currentTimeMillis() - timeTolerance
+        val filteredTimes = scheduledTimes.filter { it > currentTime }.sorted()
         Log.d(TAG, "Final scheduled times count: ${filteredTimes.size}")
         filteredTimes.forEach { time ->
             Log.d(TAG, "Scheduled time: ${Date(time)}")
