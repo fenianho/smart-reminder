@@ -90,7 +90,7 @@ app/
 
 1. Clone the project:
    ```bash
-   git clone https://github.com/your-username/smart-reminder.git
+   git clone https://github.com/fenianho/smart-reminder.git
    cd smart-reminder
    ```
 
