@@ -202,6 +202,21 @@ private fun ReminderCard(
 
             CountdownTimerText(reminder = reminder)
 
+            // 显示一次性提醒的具体日期和时间
+            if (reminder.repeatType == RepeatType.NONE) {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                val formattedDate = dateFormat.format(Date(reminder.reminderTime))
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (reminder.isActive) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    }
+                )
+            }
+
             // 显示详细的重复规则
             if (reminder.repeatType != RepeatType.NONE) {
                 val repeatRuleText = formatRepeatRule(reminder)

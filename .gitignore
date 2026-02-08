@@ -1,8 +1,9 @@
-# Android Smart Reminder App - Professional optimized .gitignore
-# Targeting Kotlin + Jetpack Compose + AI integrated Android application
+# Android Smart Reminder App - 专业优化版.gitignore
+# 针对Kotlin + Jetpack Compose + AI集成的Android应用
 
-# ======================== Build system and output files ========================
+# ======================== 构建系统和输出文件 ========================
 .gradle/
+.idea/
 build/
 */build/
 *.gradle
@@ -18,7 +19,7 @@ gradle.properties.save
 *.so
 *.o
 
-# ======================== Local configuration and sensitive files ========================
+# ======================== 本地配置和敏感文件 ========================
 local.properties
 *.keystore
 *.jks
@@ -29,7 +30,7 @@ secret.properties
 google-services.json
 GoogleService-Info.plist
 
-# ======================== IDE and development tool files ========================
+# ======================== IDE和开发工具文件 ========================
 ## Android Studio/IntelliJ IDEA
 .idea/
 *.iml
@@ -49,13 +50,13 @@ captures/
 !.vscode/extensions.json
 .history/
 
-## Eclipse and others
+## Eclipse和其他
 .project
 .classpath
 .settings/
 bin/
 
-# ======================== Operating system specific files ========================
+# ======================== 操作系统特定文件 ========================
 .DS_Store
 .DS_Store?
 ._*
@@ -66,7 +67,7 @@ Thumbs.db
 desktop.ini
 $RECYCLE.BIN/
 
-# ======================== Temporary, cache and log files ========================
+# ======================== 临时、缓存和日志文件 ========================
 *.tmp
 *.temp
 *.bak
@@ -79,13 +80,13 @@ temp/
 log/
 logs/
 
-# ======================== Database files ========================
+# ======================== 数据库文件 ========================
 *.db
 *.db-*
 *.sqlite
 *.sqlite-*
 
-# ======================== AI/Machine learning related files ========================
+# ======================== AI/机器学习相关文件 ========================
 *.tflite
 *.lite
 *.model
@@ -96,25 +97,24 @@ logs/
 *.h5
 *.ckpt
 
-# ======================== Project generation and compilation files ========================
+# ======================== 项目生成和编译文件 ========================
 gen/
 out/
 .generated/
 app/build/
 !app/build.gradle.kts
-.gradle/file-system.probe
 
-# ======================== Test and coverage files ========================
+# ======================== 测试和覆盖率文件 ========================
 coverage/
 .nyc_output/
 test-results/
 build/reports/
 
-# ======================== Version control temporary files ========================
+# ======================== 版本控制临时文件 ========================
 *.orig
 *.rej
 
-# ======================== Other miscellaneous ========================
+# ======================== 其他杂项 ========================
 *.dat
 *.exe
 *.dll
@@ -123,19 +123,19 @@ build/reports/
 .TemporaryItems/
 .Trashes/
 
-# ======================== Specific project files ========================
-# Redundant directory under project root
+# ======================== 特定项目文件 ========================
+# 项目根目录下的冗余目录
 smart-reminder/
-# Kotlin compiler cache
+# Kotlin编译器缓存
 .kotlin/
-# Project local configuration (exists but confirmed again)
+# 项目本地配置（已存在但再次确认）
 local.properties
 
-# ======================== Project specific notes ========================
-# The following files should usually be submitted to version control:
+# ======================== 项目特定注意事项 ========================
+# 以下文件通常应该提交到版本控制：
 # - gradle/wrapper/gradle-wrapper.jar
 # - gradle/wrapper/gradle-wrapper.properties  
-# - gradle.properties (note sensitive information)
+# - gradle.properties (注意敏感信息)
 # - settings.gradle.kts
 # - build.gradle.kts
 # - app/build.gradle.kts
