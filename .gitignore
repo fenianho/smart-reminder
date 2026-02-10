@@ -142,6 +142,7 @@ local.properties
 gradle-real.properties
 SIGNING_INSTRUCTIONS.md
 BUILD_INSTRUCTIONS.md
+architecture_plan.md
 # Gradle files
 .gradle/
 build/
