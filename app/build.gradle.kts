@@ -23,6 +23,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(rootProject.file(project.property("MYAPP_UPLOAD_STORE_FILE").toString()))
+            storePassword = project.property("MYAPP_UPLOAD_STORE_PASSWORD").toString()
+            keyAlias = project.property("MYAPP_UPLOAD_KEY_ALIAS").toString()
+            keyPassword = project.property("MYAPP_UPLOAD_KEY_PASSWORD").toString()
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -30,6 +39,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -99,30 +109,19 @@ dependencies {
     // TensorFlow Lite
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
-    implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
-
-    // Firebase ML Kit (可选，用于云端AI)
-    // implementation("com.google.firebase:firebase-ml-natural-language:22.0.1")
-    // implementation("com.google.firebase:firebase-ml-natural-language-smart-reply-model:20.0.8")
-
-    // Network
+    
+    // Date and Time utilities
+    implementation("com.google.android.material:material:1.10.0")
+    
+    // 添加GSON依赖
+    implementation("com.google.code.gson:gson:2.10.1")
+    
+    // 添加Retrofit依赖
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    // JSON processing
-    implementation("org.json:json:20231013")
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    // Date/Time Picker
+    
+    // 添加 Compose Material Dialogs 依赖 - 使用最新的可用版本
+    implementation("io.github.vanpra.compose-material-dialogs:core:0.9.0")
     implementation("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
-
-    // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

@@ -139,7 +139,9 @@ local.properties
 # - settings.gradle.kts
 # - build.gradle.kts
 # - app/build.gradle.kts
-
+gradle-real.properties
+SIGNING_INSTRUCTIONS.md
+BUILD_INSTRUCTIONS.md
 # Gradle files
 .gradle/
 build/
