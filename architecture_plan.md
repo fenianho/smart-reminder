@@ -156,7 +156,7 @@ data class AIExtractedInfo(
 - 用户控制数据使用
 
 ## 7. 模块划分和依赖关系
-
+ 
 ### 模块结构：
 ```
 app/
